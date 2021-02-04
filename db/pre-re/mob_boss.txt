@@ -1,0 +1,20 @@
+// Bloody Branch Summonable Monsters Database
+//
+// Structure of Database:
+// MobID,DummyName,Rate
+
+1871,Falling Bishop,100000
+1719,Detardeurus,100000
+1874,Beelzebub,100000
+1492,Samurai Specter,100000
+1688,Lady Tanee,100000
+1583,Tao Gunka,100000
+1734,Kiel D-01,100000
+1086,Golden Thief Bug,100000
+1768,Gloom Under Night,100000
+1582,Deviling,100000
+1120,Ghostring,100000
+1289,Maya Purple,100000
+1751,Valkyrie Randgris,5000
+2022,Nidhoggur's Shadow,1000
+1917,Wounded Morocc,5000

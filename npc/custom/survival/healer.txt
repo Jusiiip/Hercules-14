@@ -1,0 +1,143 @@
+//===== Hercules Script ======================================
+//= Healer
+//===== By: ==================================================
+//= Euphy
+//===== Current Version: =====================================
+//= 1.2
+//===== Description: =========================================
+//= Basic healer script.
+//===== Additional Comments: =================================
+//= 1.0 Initial script.
+//= 1.1 Aligned coordinates with @go.
+//= 1.2 Fix variables and character stuck at healing
+//====== Updates =============================================
+//= Updated by: Rance
+//= 1.3 Added level 90 below buffs
+//= 1.4 Added Removes Negative Status Ailments
+//============================================================
+
+-	script	Healer	FAKE_NPC,{
+
+	.@price = 0;	// Zeny required for heal
+	.@Buffs = 1;	// Also buff players? (1: yes / 0: no)
+	.@Delay = 5;	// Heal delay, in seconds
+	.@Negative = 1; // Removes negative ailments (1:yes / 0: no)
+
+	if (@HD > gettimetick(2)) end;
+	if (.@price) {
+		message strcharinfo(PC_NAME),"Healing costs "+.@price+" Zeny.";
+		if (Zeny < .@price) end;
+		if(select("^0055FFHeal^000000", "^777777Cancel^000000") == 2) close;
+		Zeny -= .@price;
+	}
+	
+	if (.@Buffs) {
+		specialeffect(EF_INCAGILITY, AREA, playerattached()); sc_start SC_INC_AGI,300000,10;
+		specialeffect(EF_BLESSING, AREA, playerattached()); sc_start SC_BLESSING,300000,10;
+		getinventorylist;
+		for (.@i = 0; .@i < @inventorylist_count; ++.@i){
+			if (@inventorylist_identify[.@i]) continue;
+			delitem2 @inventorylist_id[.@i],1,0,0,0,0,0,0,0;
+			getitem @inventorylist_id[.@i],1;
+			++.@iid;
+	}
+	
+	while( getbrokenid(1) ) {
+		repairall;
+	}
+	
+	if (BaseLevel < 91) {
+		specialeffect(EF_ANGELUS, AREA, playerattached()); sc_start SC_ANGELUS,300000,10;
+		specialeffect(EF_ASSUMPTIO, AREA, playerattached()); sc_start SC_ASSUMPTIO,300000,10;
+		specialeffect(EF_IMPOSITIO, AREA, playerattached()); sc_start SC_IMPOSITIO,300000,10;
+		specialeffect(EF_MAGNIFICAT, AREA, playerattached()); sc_start SC_MAGNIFICAT,300000,10;
+		specialeffect(EF_ADRENALINE, AREA, playerattached()); sc_start SC_ADRENALINE,300000,10;
+		specialeffect(EF_POEMBRAGI, AREA, playerattached()); sc_start SC_POEMBRAGI,300000,10;
+		specialeffect(EF_PROTECTWEAPON, AREA, playerattached()); sc_start SC_PROTECTWEAPON,300000,10;
+		specialeffect(EF_PROTECTSHIELD, AREA, playerattached()); sc_start SC_PROTECTSHIELD,300000,10;
+		specialeffect(EF_PROTECTARMOR, AREA, playerattached()); sc_start SC_PROTECTARMOR,300000,10;
+		specialeffect(EF_PROTECTHELM, AREA, playerattached()); sc_start SC_PROTECTHELM,300000,10;
+		specialeffect(EF_WINDWALK, AREA, playerattached()); sc_start SC_WINDWALK,300000,10;
+		specialeffect(EF_ENDURE, AREA, playerattached()); sc_start SC_ENDURE,120000,10;
+		specialeffect(EF_CONCENTRATION, AREA, playerattached()); sc_start SC_CONCENTRATION,300000,10;
+		}
+	}
+	if (.@Negative) {
+			sc_end SC_STONE;
+			sc_end SC_FREEZE;
+			sc_end SC_STUN;
+			sc_end SC_SLEEP;
+			sc_end SC_POISON;
+			sc_end SC_CURSE;
+			sc_end SC_SILENCE;
+			sc_end SC_CONFUSION;
+			sc_end SC_BLIND;
+			sc_end SC_BLOODING;
+			sc_end SC_DPOISON;
+			sc_end SC_FEAR;
+			sc_end SC_COLD;
+			sc_end SC_BURNING;
+			sc_end SC_DEEP_SLEEP;
+			sc_end SC_DEC_AGI;
+			sc_end SC_BROKENARMOR;
+			sc_end SC_BROKENWEAPON;
+			sc_end SC_NOEQUIPWEAPON;
+			sc_end SC_NOEQUIPSHIELD;
+			sc_end SC_NOEQUIPARMOR;
+			sc_end SC_NOEQUIPHELM;
+			sc_end SC__STRIPACCESSARY;
+			sc_end SC_PROPERTYUNDEAD;
+			sc_end SC_ORCISH;
+			sc_end SC_BERSERK;
+			sc_end SC_SKE;
+			sc_end SC_SWOO;
+			sc_end SC_SKA;
+		}
+	specialeffect(EF_HEAL2, AREA, playerattached()); percentheal 100,100;
+	
+	.@count = (countitem(756) / 5);
+	delitem 756, (.@count * 5);
+	getitem 984, .@count;
+	
+	.@count = (countitem(757) / 5); 
+	delitem 757, (.@count * 5);
+	getitem 985, .@count;
+
+	if (.@Delay) @HD = gettimetick(2)+.@Delay;
+	end;
+}
+
+
+// Duplicates
+//============================================================
+veil,114,112,3	duplicate(Healer)	Healer#main	4_F_JP_CYNTHIA 
+alberta,25,240,6	duplicate(Healer)	Healer#alb	4_F_JP_CYNTHIA
+aldebaran,148,120,4	duplicate(Healer)	Healer#alde	4_F_JP_CYNTHIA
+amatsu,102,143,6	duplicate(Healer)	Healer#ama	4_F_JP_CYNTHIA
+ayothaya,155,119,6	duplicate(Healer)	Healer#ayo	4_F_JP_CYNTHIA
+comodo,206,148,6	duplicate(Healer)	Healer#com	4_F_JP_CYNTHIA
+einbech,57,36,6	duplicate(Healer)	Healer#einbe	4_F_JP_CYNTHIA
+einbroch,57,202,6	duplicate(Healer)	Healer#einbr	4_F_JP_CYNTHIA
+geffen,115,72,6	duplicate(Healer)	Healer#gef	4_F_JP_CYNTHIA
+gonryun,153,122,6	duplicate(Healer)	Healer#gon	4_F_JP_CYNTHIA
+hugel,89,150,6	duplicate(Healer)	Healer#hug	4_F_JP_CYNTHIA
+izlude,123,114,5	duplicate(Healer)	Healer#izl	4_F_JP_CYNTHIA
+jawaii.gat,197,247,4	duplicate(Healer)	Healer#jaw	4_F_JP_CYNTHIA
+lighthalzen,152,100,6	duplicate(Healer)	Healer#lhz	4_F_JP_CYNTHIA
+louyang,226,103,4	duplicate(Healer)	Healer#lou	4_F_JP_CYNTHIA
+manuk,272,144,6	duplicate(Healer)	Healer#man	4_F_JP_CYNTHIA
+mid_camp,203,289,6	duplicate(Healer)	Healer#mid	4_F_JP_CYNTHIA
+moc_ruins,72,164,4	duplicate(Healer)	Healer#moc	4_F_JP_CYNTHIA
+morocc,153,97,6	duplicate(Healer)	Healer#mor	4_F_JP_CYNTHIA
+moscovia,220,191,4	duplicate(Healer)	Healer#mos	4_F_JP_CYNTHIA
+niflheim,212,182,5	duplicate(Healer)	Healer#nif	4_F_JP_CYNTHIA
+payon,179,106,4	duplicate(Healer)	Healer#pay	4_F_JP_CYNTHIA
+payon,168,229,4	duplicate(Healer)	Healer#pay2	4_F_JP_CYNTHIA
+prontera,151,190,4	duplicate(Healer)	Healer#prt	4_F_JP_CYNTHIA
+rachel,125,116,6	duplicate(Healer)	Healer#rac	4_F_JP_CYNTHIA
+splendide,201,153,4	duplicate(Healer)	Healer#spl	4_F_JP_CYNTHIA
+thor_camp,249,74,4	duplicate(Healer)	Healer#thor	4_F_JP_CYNTHIA
+umbala,97,158,4	duplicate(Healer)	Healer#umb	4_F_JP_CYNTHIA
+veins,224,129,4	duplicate(Healer)	Healer#ve	4_F_JP_CYNTHIA
+xmas,143,136,4	duplicate(Healer)	Healer#xmas	4_F_JP_CYNTHIA
+yuno,163,184,4	duplicate(Healer)	Healer#yuno	4_F_JP_CYNTHIA

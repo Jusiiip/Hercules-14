@@ -1,0 +1,18 @@
+firstcity,215,193,4	script	Welcome Knight	4_WHITEKNIGHT,{
+
+    if( #Welcome == 1) {
+		mes "[ ^000088Welcome Knight^000000 ]";
+		mes "Thank you for being part of SurvivalRO!";
+		mes "Please like and share our Facebook Fanpage";
+		mes "You may also join our Discord Channel for Updates";
+		close;
+    }
+
+	mes "[ ^000088Welcome Knight^000000 ]";
+    mes "Thank you for being part of SurvivalRO!";
+	mes "Here are your welcome items";
+	set #Welcome, 1;
+	getitem 6242, 2;
+	getitem 12281, 2;
+    close;	
+}

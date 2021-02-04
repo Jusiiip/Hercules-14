@@ -1,0 +1,270 @@
+-	script	questmanager	-1,{
+OnInit:
+	bindatcmd "quest",strnpcinfo(3)+"::OnAtcommand";
+	end;
+
+OnAtcommand:
+	warp "veil",208,208;
+	end;
+}
+
+	
+veil,214,210,3	script	Headgear Master#1	4_F_WANDERER,{ callfunc "tierquest"; }
+
+
+// Script Core
+//============================================================
+-	script	tier_shop	FAKE_NPC,{
+function Add; function Chk; function Slot; function A_An;
+OnInit:
+	freeloop(1);
+
+// -----------------------------------------------------------
+//  Basic shop settings.
+// -----------------------------------------------------------
+
+	set .Announce,0;	// Announce quest completion? (1: yes / 0: no)
+	set .ShowSlot,1;	// Show item slots? (2: all equipment / 1: if slots > 0 / 0: never)
+	set .ShowID,0;  	// Show item IDs? (1: yes / 0: no)
+	set .ShowZeny,0;	// Show Zeny cost, if any? (1: yes / 0: no)
+	set .MaxStack,100;	// Max number of quest items purchased at one time.
+
+// -----------------------------------------------------------
+//  Points variable -- optional quest requirement.
+//	setarray .Points$[0],"<variable name>","<display name>";
+// -----------------------------------------------------------
+
+	setarray .Points$[0],"#tierPOINTS","tier Points";
+
+// -----------------------------------------------------------
+//  Shop IDs -- to add shops, copy dummy data at bottom of file.
+//	setarray .Shops$[1],"<Shop 1>","<Shop 2>"{,...};
+// -----------------------------------------------------------
+
+	setarray .Shops$[1],"Headgears";
+
+// -----------------------------------------------------------
+//  Quest items -- do NOT use a reward item more than once!
+//	Add(<shop ID>,<reward ID>,<reward amount>,
+//	    <Zeny cost>,<point cost>,
+//	    <required item ID>,<required item amount>{,...});
+// -----------------------------------------------------------
+	
+	
+        Add(1,5137,1,0,0,5141,5,7047,100,661,1);				//Alice Doll
+        Add(1,5389,1,0,0,5043,5,969,10,7568,50);				//Angel Spirit
+        Add(1,5132,1,0,0,5035,1,5074,1,714,1,999,5);				//Angelring Hat
+        //Add(1,5377,1,100000000,0,2268,1,1040,30,1629,1);			//Antique Smoking Pipe
+        Add(1,5312,1,0,0,2261,1,983,1,2280,1,2627,1,969,2);			//Ayothaya King's Hat
+	Add(1,5379,1,0,0,6242,10,7151,200,7111,200,7112,200,4006,15); 		//Balloon Hat
+        Add(1,5401,1,0,0,5288,1,983,1);						//Black Framed Glasses
+        //Add(1,5800,1,0,0,5040,1,7170,1,2371,1);					//Blush of Groom
+	Add(1,18600,1,0,0,6242,10,7161,180,7206,200,1020,200,4178,15); 		//Cat Ear Beret
+        //Add(1,5359,1,0,0,2284,1,5019,1,975,1);					//Captains Hat
+        Add(1,5320,1,0,0,5205,1,1009,50,2111,1);				//Champion Wreath
+        Add(1,5142,1,0,0,5017,1,2229,1,5014,1,7209,100,7123,100,1036,100,979,1);//Crescent Helm
+        //Add(1,5373,1,0,0,2255,1,7566,3,7511,60,5104,1,7799,4,7023,20);		//Dark Randgris Helm
+        //Add(1,5254,1,0,0,5132,1,5068,1,2255,1,7023,5,983,1);			//Devilring Hat
+        Add(1,5313,1,0,0,5124,1,2249,1,5007,1,523,200);				//Diadem
+        //Add(1,5211,1,0,0,5045,1,5083,1,7063,40,7553,1,982,1,975,1);		//Dress Hat
+        //Add(1,5421,1,100000000,0,2286,1,7122,60);				//Ears of Ifrit
+        Add(1,5364,1,0,0,5347,1,975,1,982,1,983,1,5048,1);     			//Evil Snake Lord Hat
+        //Add(1,5156,1,0,0,2265,10,982,1);					//Father's Mask
+       	//Add(1,5155,1,0,0,7024,10,7754,2,7562,4,7450,1);				//Father's White Moustache 
+	Add(1,5430,1,0,0,6242,10,7122,200,7097,150,7120,180,4433,15); 		//Flame Crown 
+        Add(1,5210,1,0,0,2254,10,7063,50,7168,200,7038,200);			//Flapping Angel Wings
+        Add(1,5269,1,0,0,5203,4,7063,60,2210,1);				//Flapping Angel Wing
+        //Add(1,5361,1,0,0,7216,200);						//Gangster Scarf
+        //Add(1,5374,1,0,0,6004,5,5160,1,923,25);					//GMG
+        Add(1,5022,1,0,0,7086,1,969,10,999,40,1003,50,984,2);			//Hat of Sun God
+        Add(1,5314,1,0,0,7567,200,5102,1);					//Hockey Mask
+	Add(1,5423,1,0,0,6242,10,702,180,920,200,1027,200,4064,15,2289,1); 	//I love china
+        Add(1,5372,1,0,0,5099,1,5230,1,2747,5,982,15);				//Koneko Hat
+        Add(1,5375,1,0,0,5094,1,10018,2,968,5,7440,30);				//Large Orc Hero Helm
+        //Add(1,5013,1,50000000,0,754,100,753,100,752,100,751,100,750,100,743,100,742,100,741,100,2613,100,5053,100,7020,100,7036,100,2268,100,734,100,923,100,968,100,7005,100,714,300);		//Lord Kaho's Horn
+        Add(1,5420,1,300000000,0,5430,2,5421,1);				//Mask of Ifrit
+        Add(1,5177,1,0,0,706,1,1019,500,7200,10,1049,500,1053,2,980,1);		//Mythical Lion Mask
+        //Add(1,5305,1,0,0,1214,5,969,10,7799,5);					//Pirate Dagger
+        Add(1,5415,1,0,0,5255,1,5024,1);					//Poring Cake Hat
+        //Add(1,5409,1,0,0,5075,1,7101,5,981,10);					//Purple Cowboy Hat
+        //Add(1,5293,1,0,0,577,20,7134,1,581,3,7454,2,7455,2,6033,2,6022,2);	//Ramen Hat
+        Add(1,5288,1,0,0,5047,1,2276,1);					//Red Glasses
+        Add(1,5801,1,0,0,5083,1,2700,12,7566,12,7562,12,2357,3);		//Red Tailed Ribbon
+        //Add(1,5325,1,0,0,5102,1,7355,12,7095,4,7317,2);				//Robo Eyes
+        Add(1,5376,1,0,0,641,1,2210,1,7063,60,983,4);				//Satanic Chain
+	Add(1,5388,1,0,0,926,200,937,200,954,200); 				//Snake Hat
+        Add(1,5261,1,0,0,5164,1,714,25,2611,50,7799,4);				//Silver Tiara
+        Add(1,5297,1,0,0,5257,1,1472,2,5158,2,7063,40);				//Soul Wing
+	Add(1,5805,1,0,0,6242,10,7446,200,7266,200,1035,200,4002,15); 		//Victorious Coronet	
+        Add(1,5294,1,0,0,7019,5,7567,50);					//Whisper Mask
+        //Add(1,5278,1,0,0,2210,1,5192,1,2250,1);					//Yellow Ribbon
+        Add(1,5121,1,0,0,7263,1,660,1,7099,30,7315,369);			//Zealotus Mask 
+
+			
+	Add(1,5344,1,0,0,1059,10,7213,1,7217,1,983,1,976,1,980,2,975,2);	//Bennit Doll Hat
+	Add(1,5340,1,0,0,1059,10,7213,1,7217,1,983,3,976,2,975,1);		//Defolty 
+	Add(1,5341,1,0,0,1059,10,7213,1,7217,2,983,3,976,1,980,1,975,2);	//Glaris
+	Add(1,5497,1,0,0,1059,10,7213,1,7217,1,983,2,976,1,978,2,975,1);	//King Tiger Doll Hat
+	Add(1,5345,1,0,0,1059,10,7213,1,7217,1,983,3,976,2,975,1);		//W Doll Hat [1] 
+	Add(1,5342,1,0,0,1059,10,7213,1,7217,1,983,3,976,2,975,1);		//Sorin Doll Hat [1]
+	Add(1,5343,1,0,0,1059,10,7213,1,7217,1,983,2,976,1,978,2,975,1);	//Telling Doll Hat [1] 
+	Add(1,5526,1,0,0,1059,10,7213,1,7217,1,983,2,976,1,978,2,975,1);	//Tanigumi Girl Doll
+
+// -----------------------------------------------------------
+
+	freeloop(0);
+	set .menu$,"";
+	for(set .@i,1; .@i<=getarraysize(.Shops$); set .@i,.@i+1) {
+		set .menu$, .menu$+.Shops$[.@i]+":";
+		npcshopdelitem "tiershop"+.@i,909;
+	}
+	end;
+
+OnMenu:
+	set .@size, getarraysize(@i);
+	if (!.@size) set .@i, select(.menu$);
+	else if (.@size == 1) set .@i, @i[0];
+	else {
+		for(set .@j,0; .@j<.@size; set .@j,.@j+1)
+			set .@menu$, .@menu$+.Shops$[@i[.@j]]+":";
+		set .@i, @i[select(.@menu$)-1];
+	}
+	deletearray @i[0],getarraysize(@i);
+	if (.Shops$[.@i] == "") {
+		message strcharinfo(PC_NAME),"An error has occurred.";
+		end;
+	}
+	dispbottom "Select one item at a time.";
+	callshop "tiershop"+.@i,1;
+	npcshopattach "tiershop"+.@i;
+	end;
+
+OnBuyItem:
+	// .@q[] : RewardID, BoughtAmt, RewardAmt, BaseAmt, ReqZeny, ReqPts, { ReqItem, ReqAmt, ... }
+	setarray .@q[0],@bought_nameid[0],((@bought_quantity[0] > .MaxStack)?.MaxStack:@bought_quantity[0]);
+	copyarray .@q[3],getd(".q_"+.@q[0]+"[0]"),getarraysize(getd(".q_"+.@q[0]));
+	set .@q[2],.@q[1]*.@q[3];
+	if (!.@q[2] || .@q[2] > 30000) {
+		message strcharinfo(PC_NAME),"You can't purchase that many "+getitemname(.@q[0])+".";
+		end;
+	}
+	mes "[tier Points Shop]";
+	mes "Reward: ^0055FF"+((.@q[2] > 1)?.@q[2]+"x ":"")+Slot(.@q[0])+"^000000";
+	mes "Requirements:";
+	if (.@q[4]) mes " > "+Chk(Zeny,.@q[4]*.@q[1])+(.@q[4]*.@q[1])+" Zeny^000000";
+	if (.@q[5]) mes " > "+Chk(getd(.Points$[0]),.@q[5]*.@q[1])+(.@q[5]*.@q[1])+" "+.Points$[1]+" ("+getd(.Points$[0])+"/"+(.@q[5]*.@q[1])+")^000000";
+	if (.@q[6]) for(set .@i,6; .@i<getarraysize(.@q); set .@i,.@i+2)
+		mes " > "+Chk(countitem(.@q[.@i]),.@q[.@i+1]*.@q[1])+((.ShowID)?"{"+.@q[.@i]+"} ":"")+Slot(.@q[.@i])+" ("+countitem(.@q[.@i])+"/"+(.@q[.@i+1]*.@q[1])+")^000000";
+	next;
+	setarray @qe[1], getiteminfo(.@q[0], ITEMINFO_LOC), getiteminfo(.@q[0], ITEMINFO_VIEWSPRITE);
+	if (@qe[2] > 0 && ((@qe[1] & EQP_HEAD_LOW) || (@qe[1] & EQP_HEAD_TOP) || (@qe[1] & EQP_HEAD_MID) || (@qe[1] & EQP_COSTUME_HEAD_TOP) || (@qe[1] & EQP_COSTUME_HEAD_MID) || (@qe[1] & EQP_COSTUME_HEAD_LOW) || (@qe[1] & EQP_GARMENT) || (@qe[1] & EQP_COSTUME_GARMENT)))
+		set .@preview,1;
+	addtimer 1000, strnpcinfo(NPC_NAME)+"::OnEnd";
+	while(1) {
+		switch(select(" ~ Purchase ^0055FF"+ getitemname(.@q[0]) +"^000000", ((.@preview && !@qe[7])?" ~ Preview...": ""), " ~ ^777777Cancel^000000")) {
+		case 1:
+			if (@qe[0]) {
+				mes "[tier Points Shop]";
+				mes "You're missing one or more quest requirements.";
+				close;
+			}
+			if (!checkweight(.@q[0],.@q[2])) {
+				mes "[tier Points Shop]";
+				mes "^FF0000You need "+(((.@q[2] * getiteminfo(.@q[0], ITEMINFO_WEIGHT)) + Weight - MaxWeight) / 10)+" additional weight capacity to complete this trade.^000000";
+				close;
+			}
+			if (.@q[4]) Zeny -= (.@q[4]*.@q[1]);
+			if (.@q[5]) setd .Points$[0], getd(.Points$[0])-(.@q[5]*.@q[1]);
+			if (.@q[6]) for(set .@i,6; .@i<getarraysize(.@q); set .@i,.@i+2)
+				delitem .@q[.@i],.@q[.@i+1]*.@q[1];
+			getitem .@q[0],.@q[2];
+			//set #QUESTPOINTS,#QUESTPOINTS+1;
+			dispbottom "You currently now have " + #QUESTPOINTS + " Quest Points";
+			if (.Announce) announce strcharinfo(PC_NAME)+" has created "+((.@q[2] > 1)?.@q[2]+"x "+getitemname(.@q[0]):A_An(getitemname(.@q[0])))+"!",0;
+			specialeffect(EF_FLOWERLEAF, AREA, playerattached());
+			close;
+		case 2:
+			setarray @qe[3], getlook(LOOK_HEAD_BOTTOM), getlook(LOOK_HEAD_TOP), getlook(LOOK_HEAD_MID), getlook(LOOK_ROBE), 1;
+			if ((@qe[1] & 1) || (@qe[1] & 4096)) changelook LOOK_HEAD_BOTTOM, @qe[2];
+			else if ((@qe[1] & 256) || (@qe[1] & 1024)) changelook LOOK_HEAD_TOP, @qe[2];
+			else if ((@qe[1] & 512) || (@qe[1] & 2048)) changelook LOOK_HEAD_MID, @qe[2];
+			else if ((@qe[1] & 4) || (@qe[1] & 8192)) changelook LOOK_ROBE, @qe[2];
+			break;
+		case 3:
+			close;
+		}
+	}
+
+OnEnd:
+	if (@qe[7]) {
+		changelook LOOK_HEAD_BOTTOM, @qe[3];
+		changelook LOOK_HEAD_TOP, @qe[4];
+		changelook LOOK_HEAD_MID, @qe[5];
+		changelook LOOK_ROBE, @qe[6];
+	}
+	deletearray @qe[0],8;
+	end;
+
+function Add {
+	if (getitemname(getarg(1)) == "null") {
+		consolemes(CONSOLEMES_WARNING, "Quest reward #"+getarg(1)+" invalid (skipped).");
+		return;
+	}
+	setarray .@j[0],getarg(2),getarg(3),getarg(4);
+	for(set .@i,5; .@i<getargcount(); set .@i,.@i+2) {
+		if (getitemname(getarg(.@i)) == "null") {
+			consolemes(CONSOLEMES_WARNING,  "Quest requirement #"+getarg(.@i)+" invalid (skipped).");
+			return;
+		} else
+			setarray .@j[.@i-2],getarg(.@i),getarg(.@i+1);
+	}
+	copyarray getd(".q_"+getarg(1)+"[0]"),.@j[0],getarraysize(.@j);
+	npcshopadditem "tiershop"+getarg(0),getarg(1),((.ShowZeny)?getarg(3):0);
+	return;
+}
+
+function Chk {
+	if (getarg(0) < getarg(1)) {
+		set @qe[0],1;
+		return "^FF0000";
+	} else
+		return "^00FF00";
+}
+
+function Slot {
+	set .@s$,getitemname(getarg(0));
+	switch(.ShowSlot) {
+		case 1: if (!getitemslots(getarg(0))) return .@s$;
+		case 2: if (getiteminfo(getarg(0), ITEMINFO_TYPE) == IT_WEAPON || getiteminfo(getarg(0), ITEMINFO_TYPE) == IT_ARMOR) return .@s$+" ["+getitemslots(getarg(0))+"]";
+		default: return .@s$;
+	}
+}
+
+function A_An {
+	setarray .@A$[0],"a","e","i","o","u";
+	set .@B$, "_"+getarg(0);
+	for(set .@i,0; .@i<5; set .@i,.@i+1)
+		if (compare(.@B$,"_"+.@A$[.@i])) return "an "+getarg(0);
+	return "a "+getarg(0);
+}
+}
+
+function	script	tierquest	{
+	mes "[ Headgear Master ]";
+	mes "";
+	mes "You currently have " +#QUESTPOINTS+ " Quest Points";
+	deletearray @i[0],getarraysize(@i);
+	for(set .@i,0; .@i<getargcount(); set .@i,.@i+1)
+		set @i[.@i],getarg(.@i);
+	doevent "tier_shop::OnMenu";
+	end;
+}
+
+
+// Dummy shop data -- copy as needed.
+//============================================================
+-	shop	tiershop1	FAKE_NPC,909:-1
+-	shop	tiershop2	FAKE_NPC,909:-1
+-	shop	tiershop3	FAKE_NPC,909:-1
+-	shop	tiershop4	FAKE_NPC,909:-1
+-	shop	tiershop5	FAKE_NPC,909:-1

@@ -1,0 +1,49 @@
+//================= Hercules Script =======================================
+//=       _   _                     _
+//=      | | | |                   | |
+//=      | |_| | ___ _ __ ___ _   _| | ___  ___
+//=      |  _  |/ _ \ '__/ __| | | | |/ _ \/ __|
+//=      | | | |  __/ | | (__| |_| | |  __/\__ \
+//=      \_| |_/\___|_|  \___|\__,_|_|\___||___/
+//================= License ===============================================
+//= This file is part of Hercules.
+//= http://herc.ws - http://github.com/HerculesWS/Hercules
+//=
+//= Copyright (C) 2013-2020 Hercules Dev Team
+//=
+//= Hercules is free software: you can redistribute it and/or modify
+//= it under the terms of the GNU General Public License as published by
+//= the Free Software Foundation, either version 3 of the License, or
+//= (at your option) any later version.
+//=
+//= This program is distributed in the hope that it will be useful,
+//= but WITHOUT ANY WARRANTY; without even the implied warranty of
+//= MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//= GNU General Public License for more details.
+//=
+//= You should have received a copy of the GNU General Public License
+//= along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//=========================================================================
+//= Message of the Day script
+//=========================================================================
+
+// run when any character logs in, attached to them.
+-	script	MOTD_HOURLY	-1,{	
+OnPCLoginEvent:	
+	addtimer 3600000,strnpcinfo(0)+"::OnPCLoginEvent";	
+	.@ServName$ = "Survival Ragnarok Online";	
+	.@motd$ = F_Rand( 		
+		"Hope you're having fun on Survival Ragnarok Online!",		
+		"Please remember to review our server, check the website www.survival-ro.com for more information!",		
+		"Remember, prolong periods of gameplay can cause serious health problems, take a breather! "+ .@ServName$+" can wait!",		
+		"Type @commands to view a list of helpful tools to aid you in your adventure.",		
+		"Like and Share our Facebook Fan Page for more updates! fb.com/srvlro",		
+		"Remember, a GM will never ask for your username and password, always be safe.",		
+		"Reminder, hackers, botters, exploiters will recieve a harsh punishment if caught. That is NOT tolerated here at "+ .@ServName$+".",		
+		"Join our discord channel for suggestions and concerns https://discord.com/invite/xTmN4eG",		
+		"Don't forget to Vote to gain Points!",		
+		"Keep up the fun here at "+ .@ServName$+"!"	
+	);	
+	announce .@motd$,bc_self;	
+	end;
+}

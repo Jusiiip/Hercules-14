@@ -1,0 +1,1074 @@
+/*
+Remaining:
+	maprespawnguildid
+	noemergencycall MapFlag
+
+References:
+	@BG_TeamID = getd("$@"+.@map$+"_BG_id"+ .@min_);
+	@BG_QueueID = getd("$@"+.@map$+"_BG_queue" + .@min_);
+	@BG_Team = .@min_;
+	@BG_ID = callfunc("F_MapToId",.@map$);
+
+	@BG_TeamJoin = If using waitingroom, this says which team you can join to.
+*/
+
+// Waiting Room
+// Registration#MapnameXY
+// X = BG_Type Number ,Y = Team Number
+-	script	Register#eBG_Fake00	FAKE_NPC,{
+	end;
+	
+OnGetIndex: // Returns index of array for specific npc name.
+	.@npc_name$ = getarg(0, strnpcinfo(NPC_NAME));
+	.@len = getarg(1, getstrlen(strnpcinfo(NPC_NAME)));
+	.@array_index$ = substr(.@npc_name$, .@len-2, .@len-1);
+	return atoi(.@array_index$);
+
+OnInit:
+	.@vis_name$ = strnpcinfo(NPC_NAME_VISIBLE);	// Visible Name
+	.@npc_name$ = strnpcinfo(NPC_NAME);	// Full Name
+	if (.@npc_name$ == "Register#eBG_Fake00")
+		end;
+	.@len = getstrlen(.@npc_name$);	// Get Total Length
+	.@array_index = callsub(OnGetIndex, .@npc_name$, .@len);
+	// Retrieve Useful Information (bg_type, team_number and map_name)
+	.bg_type[.@array_index] = atoi(charat(.@npc_name$, .@len - 2));
+	.team_number[.@array_index] = atoi(charat(.@npc_name$, .@len - 1));
+	.map_name$[.@array_index] = substr(.@npc_name$, getstrlen(strnpcinfo(NPC_NAME_VISIBLE)) + 1, .@len - 3);
+	initnpctimer();
+	end;
+
+OnTimer30000:	// Update Information every 30 seconds.
+	.@array_index = callsub(OnGetIndex);
+	.@total = getelementofarray(getvariableofnpc(.bg_maxplayer, "BG_Settings"), .bg_type[.@array_index]);
+	.@bg_teams = getelementofarray(getvariableofnpc(.bg_teams, "BG_Settings"), .bg_type[.@array_index]);
+	.@max_player = (.@total / .@bg_teams);
+	.@c = callfunc("F_eBG_Total_Player", .map_name$[.@array_index], .@bg_teams, .bg_type[.@array_index]);
+	delwaitingroom();
+	waitingroom(sprintf(_$("Battle Station(%s) [%d/%d] Players"), getelementofarray(getvariableofnpc(.bg_name$, "BG_Settings"), .bg_type[.@array_index]), .@c, .@max_player), .@max_player);
+	initnpctimer();
+	end;
+}
+
+-	script	Join Battleground	FAKENPC,{
+	.@bg_type = getvariableofnpc(.bg_change, "BG_Settings");	// Save .bg_change into temporary variable.
+	mes("[Battleground Helper]");
+	mes("Would you like to join the Battleground?");
+	mesf("Current BG: %s", getelementofarray(getvariableofnpc(.bg_name$, "BG_Settings"), .@bg_type));
+	mesf("Status: %s", callfunc("F_eBG_Status", $@eBG_start[.@bg_type]));
+	if (bg_join_time > gettimetick(2)) { // BG Cooldown is remaining
+		mesf("Please wait for %d Seconds, to join the bg again", bg_join_time - gettimetick(2));
+		close;
+	}
+	if (callfunc("F_eBG_WR", .@bg_type)) { // WaitingRoom(WR) is not allowed for this BG.
+		mes("NOTE: ^FF0000 Registration to this BG only through @joinbg ^000000");
+		close;
+	}
+	if ($@eBG_start[.@bg_type] == EBG_ENDING) { // BG is ending and won't accept new players.
+		mes("NOTE: ^FF0000 Not Accepting New Entries ^000000");
+		close;
+	}
+	switch(select("Join the BG!!", "Wait, BG, ehh... No")) {
+	case 2:
+		close;
+	case 1:
+		next;
+		mes("[Battleground Helper]");
+		mes("Choose Team");
+		.@menu$ = "";
+		for (.@i = 0; .@i < .bg_teams; ++.@i) {
+			.@menu$ += callfunc("F_eBGTeamName", .@i+1) + ":";
+		}
+		.@menu$ = .@menu$ + "Cancel";
+		.@team = select(.@menu$);
+		if (.@team > .bg_teams)
+			close;
+		@BG_JoinTeam = .@team;
+		mes("Press Close to Join the Battlegrounds");
+		close2;
+		doevent("BG_Settings::OnJoinBG2");
+		callfunc("F_eBG_WR_Warp", @BG_JoinTeam, .@bg_type);
+		end;
+	}
+}
+
+-	script	BG_Settings	FAKE_NPC,{
+	end;
+OnInit:
+	// Names of BG.
+	setarray .bg_name$[BGT_CTF],    _("Flavius - CTF"), _("Tierra - Bossnia"), _("Tierra - Triple Infierno"), _("Tierra - Eye of Storm"), _("Flavius - Team Deathmatch"), _("Flavius - Stone Control"), _("Conquest"), _("Rush"), _("Tierra - Domination"), _("Fumbi - Touchdown");
+	// MapName of BG
+	setarray .bg_mapname$[BGT_CTF],	"ebg_ctf"		,"ebg_boss"			,"ebg_tti"					,"ebg_eos"				,"ebg_td"					,"ebg_sc"					,"ebg_conquest"	,"ebg_rush"	,"ebg_dom"				, "ebg_tunnel";
+	// NPCNames of BG
+	setarray .bg_npcname$[BGT_CTF],	"CTF_Flavius"	,"BOSS_Tierra"		,"TI_Tierra"				,"EOS_Tierra"			,"TDM_Flavius"				,"SC_Flavius"				,"eBG_Conquest"	,"eBG_Rush"	,"DOM_Tierra"			, "eBG_Touchdown";
+	// Time to Join Again
+	setarray .bg_maxtime[BGT_CTF],		5*60			,5*60				,5*60					,5*60					,5*60						,5*60						,6*60			,7*60		,5*60					, 10*60+10;    // Delay to Join again after leaving BG
+	// Time after which BG will end (in minutes)
+	setarray .bg_time[BGT_CTF],			15				,15					,15						,0						,15							,15							,6				,7			,0						, 0;
+	// Which BG Types to be Enabled
+	// Set to false if you want to disable that type altogether.
+	setarray .bg_enabled[BGT_CTF],		false			,false				,false					,false					,true						,false						,true			,true		,true					, false;
+	// (@joinbg_party)
+	setarray .bg_enabled_p[BGT_CTF],	false			,false				,false					,false					,true						,false						,true			,true		,true					, false;
+	// (@joinbg_guild)
+	setarray .bg_enabled_g[BGT_CTF],	false			,false				,false					,false					,true						,false						,true			,true		,true					, false;
+	/**
+	 * Required number of players per team to start BG
+	 */
+	setarray .bg_minplayer[BGT_CTF],1				,1					,3							,1						,1							,1							,1				,1			,1                    , 1;
+	// Maximum Players
+	setarray .bg_maxplayer[BGT_CTF],35				,35					,35							,35						,35							,35							,50				,30			,35                   , 40;
+	// Teams in BG
+	setarray .bg_teams[BGT_CTF],	2				,2					,3							,2						,2							,2							,2				,2			,2                    , 2;
+	// Colors used for announce.
+	setarray .bg_colors$[BGT_CTF],	"0xA0522D"		,"0x483D8B"			,"0x696969"					,"0x4169E1"				,"0x808000"					,"0x9ACD32"					,"0xFFA500"		,"0xDDA0DD"	,"0x4169E1"           , "0xFF2200";
+	// Common Settings
+	setarray .bg_common,	BGT_DOM, // Maximum BG Types(Starting from 1).
+							3,       // Max Player PER IP.
+							5,       // Time after which BG should rotate if not enough players (in minutes).
+							-1,      // RESERVED
+							1,       // Announce Every x minutes (Players currently playing)
+							-1,      // RESERVED
+							99;      // Minimum Base Level Required to join BG
+	
+	/**
+	 *	$@eBG_start - To Track Start/End status of BG.
+	 *	0 = Not Yet Started(EBG_NOT_STARTED)
+	 *	1 = Started(EBG_RUNNING)
+	 *	2 = Ending(EBG_ENDING)
+	 */
+	
+	/* Flavius Settings */
+	setarray $bg_flavius_ctf[0], 3,			// Points to win on FlaviusCTF
+								 5,			// % HP to decrease when player carrying flag
+								 5,			// % SP to decrease
+								 2000,		// MiliSeconds after which %HP/SP will decrease
+								 BF_Badge2,	// ID of Badge to be given to winning/losing teams (Z)
+								 15,			// Amount of Z For Winning Team
+								 10,			// Amount of Z For Losing Team
+								 10,			// Amount of Z For Match Tie
+								 			/* NOTE: Amount of Z Given, also depends on Team Scores too. */
+								 0,			// KafraPoints to Give Upon Win
+								 0,			// KafraPoints to Give Upon Lose
+								 0,			// KafraPoints to Give Upon Tie
+								 0, 			// QuestID to give, when you play the match. (0=Disabled)
+								 1;			// BG_CTF Variable is increased by x upon Match End 
+	/* Boss Settings */
+	setarray $bg_tierra_boss[0], 5,              // Points to Win on Boss (Total Boss)
+								 BF_Badge1,      // ID of Badge to be given to Winning/Losing Teams (Z)
+								 15,             // Amount of Z For Winning Team
+								 10,             // Amount of Z For Losing Team
+								 10,             // Amount of Z For Match Tie
+								 	             /* NOTE: Amount of Z Given, also depends on Team Scores too. */
+								 0,              // KafraPoints to Give Upon Win
+								 0,              // KafraPoints to Give Upon Lose
+								 0,              // KafraPoints to Give Upon Tie
+								 0,              // QuestID to Give, when you play the match. (0=Disabled)
+								 1,              // BG_BOSS Variable is increased by x upon Match End
+								 OBJ_NEUTRAL,    // Flag(MonsterID) for Neutral Base.
+								 OBJ_FLAG_A,     // Flag(MonsterID) for Guillaume Base.
+								 OBJ_FLAG_B,     // Flag(MonsterID) for Croix Base.
+								 RSX_0806,       // Boss 1
+								 GLOOMUNDERNIGHT,// Boss 2
+								 RANDGRIS,       // Boss 3
+								 GARM,           // Boss 4
+								 MOROCC;         // Boss 5
+	/* TI Settings */
+	setarray $bg_tierra_ti[0], Skull,          // Blue Skull ID
+							   Skull,          // Red Skull ID
+							   Skull,          // Green Skull ID
+							   80,             // Points to Win TI
+							   War_Badge,      // ID of Badge to be given to winning/losing teams (Z)
+							   30,             // Amount of Z For Winning Team
+							   15,             // Amount of Z For Losing Team
+							   10,             // Amount of Z For Match Tie
+							   0,              // KafraPoints to Give Upon Win
+							   0,              // KafraPoints to Give Upon Lose
+							   0,              // KafraPoints to Give Upon Tie
+							   0,              // QuestID to Give, when you play the match. (0=Disabled)
+							   1;              // BG_TI Variable is increased by x upon Match End 
+	/* EoS Settings */
+	setarray $bg_tierra_eos[0],	99,             // Score to Win eBG
+								5,              // % HP to Decrease when Neutral Flag is Taken
+								5,              // % SP to Decrease When Neutral Flag is Taken
+								2000,           // MiliSeconds After which HP/SP Will Decrease
+								BF_Badge1,      // ID of Badge to be given to winning/losing teams (Z)
+								30,             // Amount of Z For Winning Team
+								15,             // Amount of Z For Losing Team
+								10,             // Amount of Z For Match Tie
+								0,              // KafraPoints to Give Upon Win
+								0,              // KafraPoints to Give Upon Lose
+								0,              // KafraPoints to Give Upon Tie
+								0,              // QuestID to Give, when you play the match. (0=Disabled)
+								1;              // BG_EOS Variable is increased by x upon Match End
+	/* TD Settings */
+	setarray $bg_flavius_td[0], 99,             // Kills Required to win on FlaviusTD
+							    BF_Badge2,      // ID of Badge to be given to winning/losing teams (Z)
+							    15,             // Amount of Z For Winning Team
+							    5,             // Amount of Z For Losing Team
+							    5,             // Amount of Z For Match Tie
+							    0,              // KafraPoints to Give Upon Win
+							    0,              // KafraPoints to Give Upon Lose
+							    0,              // KafraPoints to Give Upon Tie
+							    0,              // QuestID to give, when you play the match. (0=Disabled)
+							    1;              // BG_TDM Variable is increased by x upon Match End
+	/* SC Settings */
+	setarray $bg_flavius_sc[0], 99,             // Scores Required to win on FlaviusSC
+							    BF_Badge2,      // ID of Badge to be given to winning/losing teams (Z)
+							    30,             // Amount of Z For Winning Team
+							    15,             // Amount of Z For Losing Team
+							    15,             // Amount of Z For Match Tie
+							    0,              // KafraPoints to Give Upon Win
+							    0,              // KafraPoints to Give Upon Lose
+							    0,              // KafraPoints to Give Upon Tie
+							    0,              // QuestID to give, when you play the match. (0=Disabled)
+							    1,              // BG_SC Variable is increased by x upon Match End
+								2000,           // MiliSeconds After which HP/SP Will Decrease
+								5,              // HP% to reduce when stone is in hand
+								5,              // SP% to reduce when stone is in hand
+	/* Conquest Settings */
+	$bg_conquest_rotate = rand(0,5);
+	$bg_conquest_attacker = rand(1, 2);
+	setarray $bg_conquest[0], 6,              // Minimum Score Needed to win(for Attackers) in Conquest.
+							  War_Badge,      // ID of Badge to be given to winning/losing teams (Z)
+							  10,             // Amount of Z For Winning Team
+							  5,             // Amount of Z For Losing Team
+							  0,              // Amount of Z For Match Tie[NOT USED]
+							  0,              // KafraPoints to Give Upon Win
+							  0,              // KafraPoints to Give Upon Lose
+							  0,              // KafraPoints to Give Upon Tie[NOT USED]
+							  0,              // QuestID to give, when you play the match. (0=Disabled)
+							  1,              // BG_CON Variable is increased by x upon Match End
+							  9;              // Winner Reward(Extra x War_Badge).
+	/* Rush Settings */
+	$bg_rush_rotate = rand(0, 3);
+	setarray $bg_rush[0], 2,              // Reward Multiplier
+						  War_Badge,      // ID of Badge to be given to winning/losing teams (Z)
+						  10,             // Amount of Z For Winning Team
+						  5,             // Amount of Z For Losing Team
+						  5,              // Amount of Z For Match Tie
+						  0,              // KafraPoints to Give Upon Win
+						  0,              // KafraPoints to Give Upon Lose
+						  0,              // KafraPoints to Give Upon Tie
+						  0,              // QuestID to give, when you play the match. (0=Disabled)
+						  1;              // BG_RUSH Variable is increased by x upon Match End 
+	/* Domination */
+	setarray $bg_tierra_dom[0], 99,             // Score to Win eBG
+								BF_Badge1,      // ID of Badge to be given to winning/losing teams (Z)
+								10,             // Amount of Z For Winning Team
+								5,             // Amount of Z For Losing Team
+								5,             // Amount of Z For Match Tie
+								0,              // KafraPoints to Give Upon Win
+								0,              // KafraPoints to Give Upon Lose
+								0,              // KafraPoints to Give Upon Tie
+								0,              // QuestID to Give, when you play the match. (0=Disabled)
+								1;              // BG_DOM Variable is increased by x upon Match End
+	/* Touchdown */
+	setarray $bg_fumbi_tod[0], 10,             // TouchDown Points
+							   War_Badge,      // ID of Badge to be given to winning/losing teams (Z)
+							   5,             // Amount of Z For Winning Team
+							   0,              // Amount of Z For Losing Team
+							   0,              // Amount of Z For Match Tie
+							   0,              // KafraPoints to Give Upon Win
+							   0,              // KafraPoints to Give Upon Lose
+							   0,              // KafraPoints to Give Upon Tie
+							   0,              // QuestID to give, when you play the match. (0=Disabled)
+							   1,              // BG_TOUCHDOWN Variable is increased by x upon Match End
+							   376,            // (10) cloth Pallete for Team1
+							   409,            // cloth Pallete for Team1
+							   4_DRAGON_EGG,   // Ball NPC ID
+							   2,              // Points for Killing Player.
+							   2,              // Points for Killing Player carrying Fumbi.
+							   2,              // Points for Killing Player while carrying Fumbi.
+							   831,            // Head View when Fumbi is OnHand
+							   5,              // Sp Percentage to reduce while Fumbi is in Hand
+							   2;              // Points to Take Fumbi
+								
+	/* Don't Touch Below This */
+	bindatcmd("joinbg", strnpcinfo(NPC_NAME_UNIQUE) +"::OnJoinBG");
+	bindatcmd("joinbg_party", strnpcinfo(NPC_NAME_UNIQUE) +"::OnJoinBGP");
+	bindatcmd("joinbg_guild", strnpcinfo(NPC_NAME_UNIQUE) +"::OnJoinBGG");
+	bindatcmd("leavebg", strnpcinfo(NPC_NAME_UNIQUE) +"::OnLeaveBG");
+	bindatcmd("bgtime", strnpcinfo(NPC_NAME_UNIQUE) +"::OnTimeLeft");
+	/**
+	 * 0 = Solo
+	 * 1 = Guild
+	 * 2 = Party
+	 */
+	for (.@i = 0; .@i <= 2; ++.@i) {
+		.queue[.@i] = queue();	//Current Queue
+		queueopt(.queue[.@i], QUEUEOPT_LOGOUT, strnpcinfo(NPC_NAME_UNIQUE) +"::OnLeaveBG");
+	}
+	/* BG CleanUp */
+	for (.@i = BGT_CTF; .@i <= .bg_common[0]; ++.@i)
+		callfunc("F_eBGCleanUp", .bg_mapname$[.@i], .bg_teams[.@i]);
+	
+	// Battleground ID
+	.bg_id = 0;
+	// Ranking System.
+	callsub(OnChangeBG);    // Randomize
+	// Set Ranked to 0
+	$BGRanked = 0;
+	callsub(OnMinute00Sub);  // Set Ranked Status
+	callsub(OnWarpOut);      // Warp Everyone out of BG
+	// Change Every x minutes if not enough players
+	initnpctimer;
+	end;
+
+// @bgtime command
+OnTimeLeft:
+	if (!on_ebg()) {
+		dispbottom(_("You are not playing Survival Battlegrounds."));
+		end;
+	}
+	callfunc("F_eBG_Time_Left", @BG_ID, .bg_npcname$[@BG_ID]);
+	end;
+
+// Warps all Player out of the map.
+OnWarpOut:
+	.@max_bg = getarraysize(.bg_enabled);
+	for (.@i = BGT_CTF; .@i <= .@max_bg; ++.@i) {
+		.@max_map = 1;
+		if (.bg_mapname$[.@i] == "ebg_conquest") {	// Special Handling
+			// Conquest have 6 Maps, ebg_conq01~ebg_conq06
+			.@max_map = 6;
+			for (.@j = 1; .@j <= .@max_map; ++.@j) {
+				.@map$[.@j - 1] = "ebg_conq0"+ .@j;
+			}
+		} else if (.bg_mapname$[.@i] == "ebg_rush") {
+			// Rush have 4 Maps, ebg_rush01~ebg_rush04
+			.@max_map = 4;
+			for (.@j = 1; .@j <= .@max_map; ++.@j) {
+				.@map$[.@j - 1] = "ebg_rush0"+ .@j;
+			}
+		} else if (.@i == .@max_bg) {
+			.@map$[0] = "ebg_room";	// Waiting Room.
+		} else {
+			.@map$[0] = .bg_mapname$[.@i];
+		}
+		for (.@j = 0; .@j < .@max_map; .@j++) {
+			if (getmapusers(.@map$[.@j])) {
+				bg_mapwarp(.@map$[.@j]);	// Warp to SavePont
+			}
+		}
+	}
+	return;
+
+OnMinute00Sub: // Called by callsub
+	.@ret = true;
+	// Fallthrough
+OnMinute00:
+	if (gettime(GETTIME_HOUR) < 4) // Don't Choose Ranked Time if it is 12:00AM ~ 4:00 AM (Less players)
+		end;
+	.@year = $BGRanked_ / 1000000;
+	.@month = ($BGRanked_ % 1000000) / 10000;
+	.@day = ($BGRanked_ % 10000) / 100;
+	.@hour = $BGRanked_ % 100;
+	if (.@year == gettime(GETTIME_YEAR) && .@month == gettime(GETTIME_MONTH) && .@day == gettime(GETTIME_DAYOFMONTH)) {
+		if (.@hour == gettime(GETTIME_HOUR)) // Ranked Matches
+			$BGRanked = 1;
+		else // Time has passed or yet to arrive
+			$BGRanked = 0;
+	} else {
+		.@hour = rand(gettime(GETTIME_HOUR), 23);
+		$BGRanked_ = gettime(GETTIME_YEAR) * 1000000 + gettime(GETTIME_MONTH) * 10000 + gettime(GETTIME_DAYOFMONTH) * 100 + .@hour;
+		if (.@hour == gettime(GETTIME_HOUR))
+			$BGRanked = 1;
+		else
+			$BGRanked = 0;
+	}
+	if (.@ret)
+		return;
+	end;
+
+OnResetChangeTimer:
+	.bg_common[3] = 0;
+	initnpctimer;
+	return;
+
+OnTimer60000:
+	initnpctimer;
+
+	.bg_common[5]++;
+	// If EBG is Running, announce every x minute
+	if (.bg_common[5] >= .bg_common[4] && $@eBG_start[.bg_change] != EBG_NOT_STARTED) {
+		callsub(OnBGAnnounce, 0, 0);
+		.bg_common[5] = 0;
+	}
+
+	// eBG is running, don't change the eBG Type.
+	if ($@eBG_start[.bg_change] != EBG_NOT_STARTED) {
+		end;
+	}
+
+	// Increment the timer.
+	.bg_common[3]++;
+
+	// Timer is less than required, end.
+	if (.bg_common[3] < .bg_common[2]) {
+		end;
+	}
+	// Change BG, time exceeded the setting
+	// Fallthrough
+OnChangeBGS: // End instead of return
+	.@end = 1;
+	// Fallthrough
+OnChangeBG:  // Called by callsub
+	callsub(OnResetChangeTimer);
+	do {
+		.bg_change = rand(BGT_CTF, .bg_common[0]);	//Random Rotation.
+	} while(.bg_enabled[.bg_change] == false);
+	switch(.bg_change) {
+		case BGT_CONQ: // Rotate Conquest Castle and choose the attacker.
+			// Conquest have 6 Maps, ebg_conq01~ebg_conq06
+			// Index is from 0~5
+			$bg_conquest_rotate += 1;
+			if ($bg_conquest_rotate > 5)
+				$bg_conquest_rotate = 0;
+			$bg_conquest_attacker = rand(1, 2);
+			break;
+		case BGT_RUSH:
+			// Rush have 4 Maps, ebg_rush01~ebg_rush04
+			// Index is from 0~3
+			$bg_rush_rotate += 1;
+			if ($bg_rush_rotate > 3)
+				$bg_rush_rotate = 0;
+			break;
+	}
+	// Clearing the Variables
+	deletearray($@eBG_member);
+	deletearray($@eBG_member_group);
+	deletearray($@eBG_member_type);
+	$@eBG_member_size = 0;
+	// Clear the Queue
+	for (.@i = 0; .@i <= 2; ++.@i) {
+		callfunc("F_queueclear", .@i);
+	}
+	callsub(OnBGAnnounce, 0);
+	if (.@end)
+		end;
+	return;
+
+OnBGAnnounce: // Announce remaining players
+	.@end = getarg(0, 1);	   // terminates the script if not enough player
+	.@onlyself = getarg(1, 0); // announce to self.
+
+	.@min_p = .bg_minplayer[.bg_change] * .bg_teams[.bg_change];
+	.@player_joined = queuesize(.queue[0]) + queuesize(.queue[1]) + queuesize(.queue[2]);
+
+	// Type of announcement, Self or all clients
+	if (.@onlyself == 1) {
+		.@type = BC_SELFEBG;
+	} else {
+		.@type = BC_EBG | bc_npc; // All Clients
+	}
+
+	// Announce if eBG is not started and more players required
+	if ($@eBG_start[.bg_change] == EBG_NOT_STARTED && .@player_joined < .@min_p) {
+		bg_announce(sprintf(_$("Survival Battleground -- %s -- %d more players to start."), .bg_name$[.bg_change], (.@min_p - .@player_joined)), .@type, .bg_colors$[.bg_change]);
+		if (.@end == 1) {
+			end;
+		}
+	} else if ($@eBG_start[.bg_change] != EBG_NOT_STARTED) { // eBG is running
+		.@map$ = callsub(OnGetAltMapName, .bg_change);
+		.@msg$ = "";
+		for (.@i = 1; .@i <= .bg_teams[.bg_change]; .@i++) {
+			if (.@i != 1)
+				.@msg$ += _(" vs ");
+			.@player = bg_get_data(getd("$@"+ .bg_mapname$[.bg_change] +"_BG_id"+ .@i), 0);
+			.@msg$ += sprintf(_$("%d/%d"), .@player, .bg_maxplayer[.bg_change]);
+		}
+		bg_announce(sprintf(_$("Survival Battleground -- %s -- %s Playing"), .bg_name$[.bg_change], .@msg$), .@type, .bg_colors$[.bg_change]);
+	} 
+	return;
+	
+OnCheckBGEnabled:
+	.@type = getarg(0);	// 2 = Party, 1 = Guild, 0 = None
+	if (.@type == 2) {	// Party
+		if (.bg_enabled_p[.bg_change] == false) {
+			dispbottom(sprintf(_$("Party Join is disabled for %s BG."), .bg_name$[.bg_change]));
+			return false;
+		}
+	} else if (.@type == 1) { // Guild
+		if (.bg_enabled_g[.bg_change] == false) {
+			dispbottom(sprintf(_$("Guild Join is disabled for %s BG."), .bg_name$[.bg_change]));
+			return false;
+		}
+	} else if (.@type == 0) {
+		if (.bg_enabled[.bg_change] == false) {
+			dispbottom(sprintf(_$("Individual Join is disabled for %s BG."), .bg_name$[.bg_change]));
+			return false;
+		}
+	}
+	return true;
+
+OnGetAltMapName:
+	.@mapid = getarg(0, .bg_change);
+	.@bg_mapname$ = .bg_mapname$[.@mapid];
+	if (.bg_mapname$[.@mapid] == "ebg_rush" || .bg_mapname$[.@mapid] == "ebg_conquest") {
+		if (.bg_mapname$[.@mapid] == "ebg_rush") {
+			.@bg_mapname$ = "ebg_rush0"+ ($bg_rush_rotate + 1);
+		} else {
+			.@bg_mapname$ = "ebg_conq0"+ ($bg_conquest_rotate + 1);
+		}
+	}
+	return .@bg_mapname$;
+
+OnJoinBGP: // Joinbg_party: .@type = 2
+	.@type = 2;
+	// Fallthrough
+OnJoinBGG: // joinbg_guild: .@type = 1
+	if (.@type == 0)
+		.@type = 1;
+	// Fallthrough
+OnJoinBG: // joinbg: .@type = 0
+	if (callsub(OnCheckBGEnabled, .@type) == false)
+		end;
+	// Already Queued
+	if (@BG_GlobalQueueID > 0) {
+		dispbottom(_("You are already queued."));
+		end;
+	}
+	// Player is on BG Map
+	if (on_ebg() == true) {
+		dispbottom(_("You are Already on BG"));
+		end;
+	}
+	// eBG is Ending soon.
+	if ($@eBG_start[.bg_change] == EBG_ENDING) {
+		dispbottom(_("The Survival Battleground is ending soon or already ended."));
+		dispbottom(_("Cannot join current session of survival battleground. Please wait."));
+		end;
+	}
+	// Join Delay
+	if (bg_join_time > gettimetick(2)) {
+		dispbottom(sprintf(_$("Please wait for %d Seconds, to join the bg again"), (bg_join_time - gettimetick(2))));
+		end;
+	}
+
+	// Minimum Level Requirement
+	if (BaseLevel < .bg_common[6]) {
+		dispbottom(sprintf(_$("You need to be atleast %d level to join bg."), .bg_common[6]));
+		dispbottom(sprintf(_$("Gain %d level and try to join again."), (.bg_common[6] - BaseLevel)));
+		end;
+	}
+
+	@BG_TeamJoin = 0;
+	switch(.bg_change) {
+	case BGT_RUSH:
+		.@bg_map$ = "ebg_rush0"+ ($bg_rush_rotate + 1);
+		break;
+	case BGT_CONQ:
+		.@bg_map$ = "ebg_conq0"+ ($bg_conquest_rotate + 1);
+		break;
+	default:
+		.@bg_map$ = .bg_mapname$[.bg_change];
+		break;
+	}
+	// IP Check
+	.@c = bg_logincheck(.@bg_map$);
+
+	/*
+	// Todo: Check queue players for same IP/Mac
+	for (.@i = 0; .@i <= 2; .@i++) { // Loop all queue
+		if (.@c >= .bg_common[1]) {
+			dispbottom(_("Someone else from same IP is already On BG."));
+			end;
+		}
+		.@it = queueiterator(.@queue[.@i]);
+		for (.@p = qiget(.@it); qicheck(.@it); .@p = qiget(.@it)) {	//Initialize data.
+			if (.@p == -1)
+				continue;
+		}
+	}
+	*/
+	
+	if (getbattleflag("battle_configuration/bg_queue_townonly") && !getmapflag(strcharinfo(PC_MAP), mf_town)) {
+		dispbottom(_("You can only join when in town."));
+		end;
+	}
+	// Fallthrough
+OnJoinBG2:
+	@BG_GlobalQueueID = .@type + 1;
+	queueadd(.queue[.@type], getcharid(CHAR_ID_ACCOUNT));
+	// Fallthrough
+OnStartBG:
+	callsub(OnBGAnnounce, 1);
+
+	callsub(OnResetChangeTimer);
+	
+	// Initiate Variables
+	setarray .@bg_guild[1], 1, 2, 3;	//1 = blue
+	for (.@i=1; .@i <= .bg_teams[.bg_change]; ++.@i)
+		.@bg_logout$[.@i] = strnpcinfo(NPC_NAME_UNIQUE) +"::OnLeaveBG";
+
+	.@bg_mapname$[0] = .bg_mapname$[.bg_change];
+	.@bg_mapname$[1] = callsub(OnGetAltMapName, .bg_change);
+
+	// Check Player Count
+	if (callfunc("F_eBGMaxPlayer", .bg_mapname$[.bg_change], .bg_teams[.bg_change]) >= .bg_maxplayer[.bg_change] ||
+		$@eBG_member_size >= .bg_maxplayer[.bg_change]) {
+		dispbottom(_("Please Wait till Current BG gets Over..."));
+		end;
+	}
+	// Attempt to join
+	.@i = callfunc("F_joinTeams", .@bg_mapname$, .queue, .bg_teams[.bg_change], 2, 1, 1, .bg_maxplayer[.bg_change], .@bg_guild, .@bg_logout$, .@team_to_join);
+	switch(.@i) {
+	case 0: // Success
+		donpcevent(.bg_npcname$[.bg_change] +"::OnReadyCheck");
+		break;
+	case -1: // Fail to Join
+		/**
+		 * Failed to Join
+		 * Reasons:
+		 * 	Cannot balance teams
+		 * 	Invalid Map
+		 * 	Invalid GuildID
+		 */
+		dispbottom(_("Failed to Join BG. Try again later."));
+		break;
+	}
+	end;
+	
+OnReadyCheck:
+	/**
+	 * Not Yet Implemented. Should OnReadyCheck be common?
+	 */
+	end;
+
+// Reset ranked game stats
+OnPCLoginEvent:
+	callsub(OnBGAnnounce, 0, 1); // Announce to self only
+	// Change BG_ID
+	@BG_ID = BGT_MAX;
+	// Reset the Ranking if day is different
+	if (bg_ranked != $BGRanked_) {
+		bg_reset_rank_stat();
+	}
+	end;
+
+// For Debug (GM Only)
+OnWhisperGlobal:
+	if (getgmlevel() < 60)
+		end;
+	while(1) {
+		mes("------------------------");
+		mesf("Current BG: %s", .bg_mapname$[.bg_change]);
+		mes("------------------------");
+		mes("Format: <ID>.) <MapName> : <Start Status>");
+		for (.@i = BGT_CTF; .@i <= .bg_common[0]; ++.@i) {
+			mesf("%d.) %s : %d", .@i, .bg_mapname$[.@i], $@eBG_start[.@i]);
+		}
+		mes("------------------------");
+		mes("Ranking Info: ");
+		mesf("Last Ranked Time: %d", $BGRanked_);
+		mesf("Current Status: %s", ($BGRanked == 1) ? "ON" : "OFF");
+		mes("------------------------");
+		mesf("Server Time(in hour): %d", gettime(GETTIME_HOUR));
+		switch(select("Close", "Execute OnMinute00", "Enable/Disable BGRanked", "RotateBG", "Set BGType")) {
+			case 1:
+				close;
+			case 2:
+				callsub(OnMinute00Sub);
+				break;
+			case 3:
+				$BGRanked = !$BGRanked;
+				break;
+			case 4:
+				.bg_change = rand(BGT_CTF, .bg_common[0]);	// Random Rotation.
+				break;
+			case 5:
+				input(.bg_change);
+				break;
+		}
+		next;
+	}
+	close;
+
+OnLeaveBGSourceSub:
+	.@ret = getarg(0, 0);
+OnLeaveBGSource:	// called from Source
+	.@BG_ID = @BG_ID;
+	if (.@BG_ID < 0 || .@BG_ID == BGT_MAX) {
+		if (.@ret)
+			return;
+		end;
+	}
+
+	callfunc("F_resetBases", .@BG_ID);
+
+	bg_hpsp_time_del(EBG_HP_TIME | EBG_SP_TIME | EBG_EXTRA_TIME);
+
+	bg_end(.@BG_ID);
+
+	bg_leave(); // Called again with bg_leave
+
+	// Remove from queue
+	queueremove(getd("$@"+ .bg_mapname$[.@BG_ID] +"_BG_queue"+ @BG_Team), getcharid(CHAR_ID_ACCOUNT));
+
+	// Clear Variables and set rejoin time.
+	bg_join_time = gettimetick(2) + .bg_maxtime[.@BG_ID];	//Sets Time to join Again
+
+	// Check if match end
+	.@team = .bg_teams[.@BG_ID];
+	.@noone = true;
+	for (.@i = 1; .@i <= .@team; ++.@i) {
+		if (queuesize(getd("$@"+ .bg_mapname$[.@BG_ID] +"_BG_queue"+ .@i))) {
+			.@noone = false;
+			break;
+		}
+	}
+	if (.@noone == true) {
+		donpcevent(.bg_npcname$[.@BG_ID]+"::OnMatchStop");	//Stop it, don't end it
+	}
+	callfunc("F_ValidateeBG", .@BG_ID, 1);	// Will Set the Variables to 0
+	/* Team Balancing */
+	setarray .@bg_guild[1], 1, 2, 3;	//1 = blue
+
+	.@bg_mapname$[0] = .bg_mapname$[.@BG_ID];
+	.@bg_mapname$[1] = callsub(OnGetAltMapName, .@BG_ID);
+
+	callfunc("F_balanceTeams", .@bg_mapname$, .queue, .@team, .bg_maxplayer[.@BG_ID], .@bg_guild, 0);
+
+	@BG_ID = BGT_MAX;
+	if (.@ret)
+		return;
+	end;
+
+OnPCLogoutEvent: // Leave the BG and set the timer
+	callsub(OnLeaveBGSub, true, true);
+	end;
+
+OnLeaveBGSub:
+	.@dont_warn = getarg(0, 1);
+	.@ret_func = getarg(1, 1);
+	// Fallthrough
+// Not Called when logout
+OnLeaveBG:	// Replicate in bg_team_delete_pre (called when used .@leavebg/leaved bg via mapchange)	
+	if (on_ebg() == false) {
+		if (@BG_GlobalQueueID > 0) {
+			if (queueremove(.queue[@BG_GlobalQueueID - 1], getcharid(CHAR_ID_ACCOUNT))) {
+				@BG_GlobalQueueID = 0;
+				if (.@dont_warn == false) {
+					dispbottom(_("Removed from Queue"));
+					callsub(OnBGAnnounce, 0, 0);
+				}
+			} else {
+				if (.@dont_warn == false) {
+					// This will happen due to @reloadscript
+					dispbottom(_("You cannot be removed from queue. Please contact GM or relog to fix."));
+				}
+			}
+		}
+		
+		if (.@ret_func)
+			return 0;
+		end;	// .@ret_func = 0
+	}
+	// Set Cloths back for Touchdown
+	if (@BG_Team) {
+		.@BG_ID = @BG_ID;
+
+		callsub(OnLeaveBGSourceSub, 1);
+		if (.@dont_warn == false) {
+			// Act as if player has logged out.
+			dispbottom(_("BG Leaved"));
+		}
+		
+		// Warp back to savepoint
+		if (getmapflag(strcharinfo(PC_MAP), mf_battleground))
+			warp("SavePoint", 0, 0);
+		
+		/**/
+		if (.@ret_func) {
+			return 1;
+		}
+	}
+	if (.@ret_func) {
+		return -1;
+	}
+	end;
+}
+
+/**
+ * Common BG Scripts
+ */
+
+// Flags
+-	script	Flag#bat	FAKE_NPC,{
+	end;
+}
+
+// Respawn Area
+-	script	respawn_script#bg	FAKE_NPC,{
+	end;
+
+OnBGStart:	// BG Starts
+	.@id = atoi(strnpcinfo(NPC_NAME_HIDDEN));
+	if (.@id <= 0)
+		end;
+	if (.uid[.@id])
+		callsub(OnBGStopSub);	//Restarts the Timer
+	.uid[.@id] = bg_timer_start(24000, 1);
+	switch(.@id) {
+		/* CTF: 1, 2 */
+		/* SC: 12, 13 */
+		case 1: // Blue Team
+		case 12:
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 382, 2, 397, 17, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 382, 2, 397, 17, strnpcinfo(NPC_MAP), 311, 224, 1);
+			break;
+		case 2: // Red Team
+		case 13:
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 6, 282, 13, 297, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 6, 282, 13, 297, strnpcinfo(NPC_MAP), 87, 75, 1);
+			break;
+		/* Boss 3,4 */
+		case 3: // Blue Team
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 46, 370, 54, 378, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 46, 370, 54, 378, strnpcinfo(NPC_MAP), 354, 340, 1);
+			break;
+		case 4: // Red Team
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 38, 12, 47, 21, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 38, 12, 47, 21, strnpcinfo(NPC_MAP), 354, 57, 1);
+			break;
+		/* TI 5,6,7 */
+		case 5: // Blue Team
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 46, 86, 53, 93, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 46, 86, 53, 93, strnpcinfo(NPC_MAP), 46, 70, 53, 72, 1);
+			break;
+		case 6: // Red Team
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 6, 46, 13, 53, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 6, 46, 13, 53, strnpcinfo(NPC_MAP), 27, 46, 29, 53, 1);
+			break;
+		case 7: // Green Team
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 86, 46, 93, 53, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 86, 46, 93, 53, strnpcinfo(NPC_MAP), 70, 46, 72, 53, 1);
+			break;
+		/* EOS 8,9 */
+		/* DOM 18,19 */
+		case 8: // Blue Team
+		case 18:
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 46, 370, 54, 378, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 46, 370, 54, 378, strnpcinfo(NPC_MAP), -1, 0, 1);
+			break;
+		case 9: // Red Team
+		case 19:
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 38, 12, 47, 21, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 38, 12, 47, 21, strnpcinfo(NPC_MAP), -1, 0, 1);
+			break;
+		/* Team DeathMatch 10,11 */
+		case 10: // Blue Team
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 382, 2, 397, 17, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 382, 2, 397, 17, strnpcinfo(NPC_MAP), 306, 138, 327, 161, 1);
+			break;
+		case 11: // Red Team
+			bg_areaheal_timer(.uid[.@id], strnpcinfo(NPC_MAP), 2, 282, 17, 297, 100, 100, 1);
+			bg_areawarp_timer(.uid[.@id], strnpcinfo(NPC_MAP), 2, 282, 17, 297, strnpcinfo(NPC_MAP), 72, 138, 93, 161, 1);
+			break;
+		/* Conquest: 14,15 */
+		case 14: // Blue Team
+		case 15: // Red Team
+			.@index = $bg_conquest_rotate; // Check map index
+			.@Castle$ = "ebg_conq0"+ (.@index + 1);
+			.@announce$ = _("-- Reinforcements entering the Battle of Conquest --");
+			.@color$ = "0xFFA500"; // Color of Announce
+			// Warp positions for Attacker and Defender
+			setarray .@bg_conquest_Defender_XY[0],	120, 129,  // ebg_conq01
+													136, 188,  // ebg_conq02
+													308, 208,  // ebg_conq03
+													67,  193,  // ebg_conq04
+													43,  256,  // ebg_conq05
+													121,  318;  // ebg_conq06
+			setarray .@bg_conquest_Attacker_XY[0],	119, 8,
+													339, 78,
+													337, 330,
+													275, 93,
+													139, 31,
+													141, 45;
+			// If Guillaume or Croix is attacker
+			if (($bg_conquest_attacker == GUILLAUME && .@id == 14) || ($bg_conquest_attacker == CROIX && .@id == 15)) {
+				.@x = .@bg_conquest_Attacker_XY[.@index * 2];
+				.@y = .@bg_conquest_Attacker_XY[(.@index * 2) + 1];
+			} else { // Defender
+				.@x = .@bg_conquest_Defender_XY[.@index * 2];
+				.@y = .@bg_conquest_Defender_XY[(.@index * 2) + 1];
+			}
+			// Blue Team Heal/Warp Area
+			if (.@id == 14) {
+				switch(.@index) {
+					case 0: // ebg_conq01
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 260, 376, 267, 383, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 260, 376, 267, 383, .@Castle$, .@x, .@y, 1);
+						break;
+					case 1:
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 80, 301, 92, 321, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 80, 301, 92, 321, .@Castle$, .@x, .@y, 1);
+						break;
+					case 2:
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 18, 44, 33, 55, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 18, 44, 33, 55, .@Castle$, .@x, .@y, 1);
+						break;
+					case 3:
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 26, 378, 33, 385, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 26, 378, 33, 385, .@Castle$, .@x, .@y, 1);
+						break;
+					case 4:
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 291, 336, 304, 342, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 291, 336, 304, 342, .@Castle$, .@x, .@y, 1);
+						break;
+					case 5: // ebg_conq06
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 310, 150, 316, 157, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 310, 150, 316, 157, .@Castle$, .@x, .@y, 1);
+						break;
+				}
+			} else { // Red Team
+				switch(.@index) {
+					case 0: // ebg_conq01
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 292, 376, 299, 383, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 292, 376, 299, 383, .@Castle$, .@x, .@y, 1);
+						break;
+					case 1:
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 111, 301, 123, 321, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 111, 301, 123, 321, .@Castle$, .@x, .@y, 1);
+						break;
+					case 2:
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 82, 44, 97, 55, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 82, 44, 97, 55, .@Castle$, .@x, .@y, 1);
+						break;
+					case 3:
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 122, 354, 129, 361, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 122, 354, 129, 361, .@Castle$, .@x, .@y, 1);
+						break;
+					case 4:
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 291, 305, 304, 311, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 291, 305, 304, 311, .@Castle$, .@x, .@y, 1);
+						break;
+					case 5: // ebg_conq06
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 327, 150, 333, 157, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 327, 150, 333, 157, .@Castle$, .@x, .@y, 1);
+						break;
+				}
+			}
+			break;
+		/* Rush: 16,17 */
+		case 16: ///< Defender
+		case 17: ///< Attacker
+			// Rush Map Index
+			.@index = $bg_rush_rotate;
+			.@Castle$ = "ebg_rush0"+ (.@index + 1);
+			.@announce$ = _("-- Reinforcements entering the Battle of Rush --");
+			.@color$ = "0xDDA0DD";
+			// Defender BG Id
+			.@Defender = getvariableofnpc(.Defender, "eBG_Rush");
+
+			.@DefIndex = (.@id == 16)? 0: 2;
+
+			// If Blue Team is Defender and id = 16(Blue Team), set Def Index to 2(Warp Index)
+			if ($@ebg_rush_BG_id1 == .@Defender && .@Defender != 0)
+				.@DefIndex = (.@id == 16)? 2: 0;
+			if (.@Defender == 0)
+				.@DefIndex = 0; ///< Attacker
+			if (.@id == 16) {
+				switch(.@index) {
+					case 0:
+						setarray .@XY[0],	43, 229, // Attacker
+											71,  36; // Defender
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 198, 224, 207, 233, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 198, 229, 207, 233, .@Castle$, .@XY[.@DefIndex], .@XY[.@DefIndex+1], 1);
+						break;
+					case 1:
+						setarray .@XY[0],	252, 271, // Attacker
+											40 , 235; // Defender
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 142, 44, 151, 53, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 142, 49, 151, 53, .@Castle$, .@XY[.@DefIndex], .@XY[.@DefIndex+1], 1);
+						break;
+					case 2:
+						setarray .@XY[0],	216, 103, // Attacker
+											31 , 190; // Defender
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 56, 6, 69, 17, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 56, 6, 61, 17, .@Castle$, .@XY[.@DefIndex], .@XY[.@DefIndex+1], 1);
+						break;
+					case 3: 
+						setarray .@XY[0],	100, 280, // Attacker
+											116,  89; // Defender
+						bg_areaheal_timer(.uid[.@id], .@Castle$, 266, 286, 275, 295, 100, 100, 1);
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 266, 291, 275, 295, .@Castle$, .@XY[.@DefIndex], .@XY[.@DefIndex+1], 1);
+						break;
+				}
+			} else {
+				switch( .@index ) {
+					case 0:
+						setarray .@XY[0],	43, 229, // Attacker
+											71,  36; // Defender
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 198, 224, 207, 227, .@Castle$, .@XY[.@DefIndex], .@XY[.@DefIndex+1], 1);
+						break;
+					case 1:
+						setarray .@XY[0],	252, 271, // Attacker
+											40 , 235; // Defender
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 142, 44, 151, 47, .@Castle$, .@XY[.@DefIndex], .@XY[.@DefIndex+1], 1);
+						break;
+					case 2:
+						setarray .@XY[0],	216, 103, // Attacker
+											31 , 190; // Defender
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 63, 6, 69, 17, .@Castle$, .@XY[.@DefIndex], .@XY[.@DefIndex+1], 1);
+						break;
+					case 3: 
+						setarray .@XY[0],	100, 280, // Attacker
+											116,  89; // Defender
+						bg_areawarp_timer(.uid[.@id], .@Castle$, 266, 286, 275, 289, .@Castle$, .@XY[.@DefIndex], .@XY[.@DefIndex+1], 1);
+						break;
+				}
+			}
+			break;
+	}
+	// Timer will perform HEAL + WARP Operation
+	.@operations = EBG_OP_HEAL | EBG_OP_WARP;
+	// Conquest and Rush does announce for Defender(if warp occurs)
+	if (.@id >= 14 && .@id <= 17) {
+		if (.@id == 14 || .@id == 16) {
+			bg_mapannounce_timer(.uid[.@id], .@Castle$, .@announce$, bc_map, .@color$, 1);
+			bg_timer_link(.uid[.@id], EBG_OP_WARP, EBG_OP_MAPANNOUNCE); // Announce only if warp is done
+		}
+		// Defender's Healer heals both
+		if (.@id == 17)
+			.@operations &= ~EBG_OP_HEAL;
+	} else { // Other Maps have Effect while doing heal
+		bg_effect_timer(.uid[.@id], EF_SANCTUARY);
+	}
+	// Start the Timer
+	bg_timer_child(.uid[.@id], 1000, .@operations);
+	end;
+
+OnBGStopSub:	//called via callsub(returns instead of end)
+	.@ret = true;
+OnBGStop:	//BG Stops
+	.@id = atoi(strnpcinfo(NPC_NAME_HIDDEN));
+	if (.@id <= 0) {
+		if (.@ret == true) {
+			return;
+		}
+		end;
+	}
+	// Stop BG Timer
+	bg_timer_stop(.uid[.@id]);
+	// Unique Timer ID = 0
+	.uid[.@id] = 0;
+	if (.@ret == true) {
+		return;
+	}
+	end;
+}
+
+// Therapist
+-	script	Therapist#eBG	FAKE_NPC,{
+	mes("[Therapist in battle]");
+	mes("Just close your eyes, and take a deep breathe.");
+	mes("You can be free from pain.");
+	specialeffect(EF_HEAL, AREA, playerattached());
+	percentheal(100, 100);
+	repairall();
+	close2;
+	openstorage();
+	end;
+}

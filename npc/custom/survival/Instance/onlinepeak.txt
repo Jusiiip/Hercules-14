@@ -1,0 +1,25 @@
+-	script	Highest Peak	FAKENPC,{
+
+OnPCLoginEvent:
+
+sleep 1000;
+.onlineusers = getusers(1);
+query_sql("SELECT `users` FROM `cp_onlinepeak` ORDER BY `users` LIMIT 1",.@countusers);
+if(getarraysize(.@countusers) == 0) {
+	query_sql("INSERT INTO `cp_onlinepeak` (`users`) VALUES (" + .onlineusers + ")");
+} else {
+	if(.onlineusers > .@countusers[0]) {
+		if(.displaypeakannounce == 1){
+			announce "We have reached a new player peak! We now have "+.onlineusers+" online!",bc_all;
+		}
+		query_sql("UPDATE `cp_onlinepeak` SET `users` = '" + .onlineusers + "'");
+	}
+}
+end;
+
+OnInit:	
+	.displaypeakannounce = 1;
+
+// END CONFIGS
+
+}

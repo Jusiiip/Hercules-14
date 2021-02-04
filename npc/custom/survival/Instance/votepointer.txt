@@ -1,0 +1,9 @@
+-	script	VotePointConvert	-1,{
+OnPCLoginEvent:
+   query_sql("SELECT `credits` FROM `cp_votes` WHERE account_id="+getcharid(3)+" LIMIT 1",.@points);
+   if (!.@points) end;
+   query_sql("UPDATE `cp_votes` SET credits=(credits-"+.@points+") WHERE account_id='"+getcharid(3)+"'");
+   set #VOTEPOINTS, #VOTEPOINTS+.@points;
+   dispbottom "[ Vote Points ]: Vote Points has been updated! Use @votepoints to check your points.";
+   end;
+}

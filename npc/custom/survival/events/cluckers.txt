@@ -1,0 +1,68 @@
+veil,169,154,4	script	Clucker	4_NFCOCK,{
+if (.startcluck == 1) goto L_playcluck;
+		mes "[Cluckers]";
+		mes "Cluck cluck! Cluuuuuck?";
+		mes "Cluck....";
+		close;
+		
+OnStartCluck:
+OnEventStart: //0.00 secs
+	donpcevent "eventmanager::OnStartEvent";
+	announce "[ Event Manager ]: Cluck! Cluck! Boom! is about to start in Veil Town! Use @joinevent to join.",bc_all|bc_blue;		
+	initnpctimer;
+	end;		
+OnTimer10000: //0.10 secs
+	announce "[ Event Manager ]: Please hurry to Event Area if you want to play with the crazy chicken! Use @joinevent to join.",bc_all|bc_blue;
+	end;
+OnTimer20000: //0.20 secs
+	announce "[ Event Manager ]: Clucker has eaten one of my items! I'm too scared to retrieve it!  Use @joinevent to join.",bc_all|bc_blue;
+	end;
+OnTimer30000: //.30 secs
+	announce "[ Event Manager ]: Click the insane chicken and try squeeze out the item, if you're lucky you'll win! Are you ready?  Use @joinevent to join.",bc_all|bc_blue;
+	end;
+OnTimer40000: //.40 secs
+	announce "[ Event Manager ]: GO! Click the chicken to get the 2 Event Treasure Box!",bc_blue;
+	set .startcluck,1;	
+	donpcevent "eventmanager::OnCloseJoinEvent";
+	end;	
+OnTimer1200000: //added 20 mins timer if there is no one is playing to reset the global variable.
+	announce "[ Event Manager ]: What a waste, in a span of 20 minutes no one got my items?. I will end the event now!",bc_all|bc_blue;					
+	donpcevent "eventmanager::OnEndEvent";
+	set .startcluck,0;
+	end;
+	
+L_playcluck:	
+	if (.startcluck) {
+		specialeffect(EF_HIT3, AREA, playerattached());
+		switch(rand(15)) {			
+			case 0: npctalk "CLUUUUUUCK!!!"; unitskilluseid getcharid(CHAR_ID_ACCOUNT),"NPC_SELFDESTRUCTION",1; emotion 23; break;
+			case 1: npctalk "Cluuuuuck!~"; break;
+			case 2: unitskilluseid getcharid(CHAR_ID_ACCOUNT),"NPC_SELFDESTRUCTION",1; break;
+			case 3: sc_start SC_FREEZE,10000,0; break;
+			case 4: npctalk "CLUUUUUUUUUCK!!!"; unitskilluseid getcharid(CHAR_ID_ACCOUNT),"NPC_SELFDESTRUCTION",1; emotion 23; break;
+			case 5: sc_start SC_SLEEP,10000,0; break;
+			case 6: sc_start SC_STONE,10000,0; emotion 29; break;
+			case 7: npctalk "CLUUUUUUCK!!!"; unitskilluseid getcharid(CHAR_ID_ACCOUNT),"NPC_SELFDESTRUCTION",1; emotion 23; break;
+			case 8: npctalk "Cluck! CLUUUCK!!"; unitskilluseid getcharid(CHAR_ID_ACCOUNT),"NPC_SELFDESTRUCTION",1; emotion 23; break;
+			case 9: sc_start SC_STUN,10000,0; break;
+			case 10: sc_start SC_SLEEP,10000,0; emotion 29; break;
+			case 11: npctalk "Cluck! Cluck!"; break;
+			case 12: sc_start SC_STUN,10000,0; break;
+			case 13: unitskilluseid getcharid(CHAR_ID_ACCOUNT),"NPC_SELFDESTRUCTION",1; break;			
+			default:
+				if (rand(50) < 4) {
+					npctalk "WOOF!...........";
+					specialeffect(EF_SPHERE, AREA, playerattached());
+					announce "[ Event Manager ]: " + strcharinfo(PC_NAME) + " squeezed out the prize! Well done!",0;					
+					donpcevent "eventmanager::OnEndEvent";
+					getitem 12281,2;
+					set .startcluck,0;
+				} else {
+					npctalk "Cluck! CLUUUCK!!";
+					unitskilluseid getcharid(CHAR_ID_ACCOUNT),"NPC_SELFDESTRUCTION",1;
+				}
+				break;
+		}
+	}
+	end;
+}

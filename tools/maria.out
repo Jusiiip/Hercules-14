@@ -1,0 +1,9 @@
+2021-02-04 15:20:46 0 [Note] C:\Users\sephy\scoop\apps\mariadb\current\bin\mysqld.exe (mysqld 10.5.8-MariaDB) starting as process 9956 ...
+InnoDB: using atomic writes.
+2021-02-04 15:20:46 0 [ERROR] InnoDB: The innodb_system data file 'ibdata1' must be writable
+2021-02-04 15:20:46 0 [ERROR] InnoDB: The innodb_system data file 'ibdata1' must be writable
+2021-02-04 15:20:46 0 [ERROR] Plugin 'InnoDB' init function returned error.
+2021-02-04 15:20:46 0 [ERROR] Plugin 'InnoDB' registration as a STORAGE ENGINE failed.
+2021-02-04 15:20:46 0 [Note] Plugin 'FEEDBACK' is disabled.
+2021-02-04 15:20:46 0 [ERROR] Unknown/unsupported storage engine: InnoDB
+2021-02-04 15:20:46 0 [ERROR] Aborting

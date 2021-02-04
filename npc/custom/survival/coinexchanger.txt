@@ -1,0 +1,67 @@
+veil,33,182,4	script	Coin Exchanger	4_M_KAGE_OLD,{
+ 
+//====================================[Customization Area]==========================//
+                set .npcname$,"^0000EE[ Coin Exchanger ]^000000"; //NPC Name
+                set .coinname$,"^0000EEMidgard Coin^000000"; //Name of Item as Coin Used
+                set .CoinID,6242; // Credit ID Set to Red Potion
+                set .zeny,1000000; // Credit Price Set by 10,000,000 or 10m
+                set .capzeny,2000000000; //Zeny Capacity Set by 2,000,000,000 or 2b
+//==============================================================================//
+// Check Line 89 To Edit The Chat/Pub Name Like This:
+//              waitingroom "Credit Exchanger",0;
+//==============================================================================//
+ 
+			PlayerMode:
+                mes .npcname$;
+                mes "Hello there "+strcharinfo(0);
+                mes "Rule's Of Exchange";
+                mes "1 ^0000EE"+.coinname$+"^000000 is ^0000EE"+.zeny+"^000000z";
+				mes " ";
+                mes "Zeny Exchange Capacity is ^0000EE"+.capzeny+"^000000z";
+                switch(select("Midgard Coin to Zeny:Zeny to Midgard Coin")) {
+        case 1:
+                next;
+                mes .npcname$; 
+                mes "How many Midgard Coin to exchange?";
+                mes "Put The Credit Amount";
+                mes "Put ^0000EE0^000000 to Cancel";
+                mes "1 ^0000EE"+.coinname$+"^000000 is ^0000EE"+.zeny+"^000000z";
+                mes "Zeny Exchange Capacity is ^0000EE"+.capzeny+"^000000z";
+                next;
+                do{
+                input @Credit,0,countitem(.CoinID);
+                if( @Credit < 1 ) close;
+                }while( ( ( @Credit * .zeny ) + Zeny ) > .capzeny );
+                next;
+                mes .npcname$;
+                mes "Thanks";
+                delitem .CoinID,@Credit;
+                set Zeny, Zeny + ( @Credit * .zeny );
+                dispbottom "Zeny Exchange Finished";
+                close;
+ 
+        case 2:
+                next;
+                mes .npcname$; 
+                mes "How much Midgard Coin you like to Gain?";
+                mes "Put The Midgard Coin Amount";
+                mes "Put ^0000EE0^000000 to Cancel";
+                mes "1 ^0000EE"+.coinname$+"^000000 is ^0000EE"+.zeny+"^000000z";
+                mes "Zeny Exchange Capacity is ^0000EE"+.capzeny+"^000000z";
+                next;
+                input @Credit,0,( Zeny / .zeny );
+                if( @Credit < 1 ) close;
+                next;
+                mes .npcname$;
+                mes "Thanks.";
+                set Zeny, Zeny - ( @Credit * .zeny);
+                getitem .CoinID,@Credit;
+                dispbottom "Midgard Coin Exchange Finished";
+                close;
+ 
+                OnInit:
+                waitingroom "Midgard Coin Exchanger",0;
+                end;
+        }
+close;
+}

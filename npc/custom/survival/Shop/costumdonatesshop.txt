@@ -1,0 +1,410 @@
+//===== Hercules Script ======================================
+//= Euphy's Costume Voucher Shop
+//===== By: ==================================================
+//= Euphy
+//===== Current Version: =====================================
+//= 1.6a
+//===== Description: =========================================
+//= A dynamic Costume Voucher Shop based on Lunar's, with easier config.
+//= Includes support for multiple shops & cashpoints.
+//= Item Preview script by ToastOfDoom.
+//===== Additional Comments: =================================
+//= 1.0 Initial script.
+//= 1.2 Added category support.
+//= 1.3 More options and fixes.
+//= 1.4 Added debug settings.
+//= 1.5 Replaced categories with shop IDs.
+//= 1.6 Added support for purchasing stackables.
+//= 1.6a Added support for previewing costumes and robes.
+//============================================================
+
+// Shop NPCs -- supplying no argument displays entire menu.
+//	callfunc "costumVouchershop"{,<shop ID>{,<shop ID>{,...}}};
+//============================================================
+veil,83,138,6	script	Costume Voucher Shop#1	4_F_HUNTER_EVIL,{ 
+mes "[ ^000088Costume Voucher Shop^000000 ]";
+mes "Please select what item you want";
+next;
+switch(select("Tier 1:Tier 2:Tier 3:Tier 4")) {
+case 1:	
+			{set @tiershop,1;break;}
+case 2:	
+			{set @tiershop,2;break;}
+case 3:	
+			{set @tiershop,3;break;}
+case 4:	
+			{set @tiershop,4;break;}
+	}
+callfunc "costumVouchershop"; 
+}
+
+// Script Core
+//============================================================ 
+-	script	costume_Voucher_shop	FAKE_NPC,{
+function Add; function Chk; function Slot; function A_An;
+OnInit:
+	freeloop(1);
+
+// -----------------------------------------------------------
+//  Basic shop settings.
+// -----------------------------------------------------------
+
+	set .Announce,0;	// Announce quest completion? (1: yes / 0: no)
+	set .ShowSlot,1;	// Show item slots? (2: all equipment / 1: if slots > 0 / 0: never)
+	set .ShowID,0;  	// Show item IDs? (1: yes / 0: no)
+	set .ShowZeny,1;	// Show Zeny cost, if any? (1: yes / 0: no)
+	set .MaxStack,1;	// Max number of quest items purchased at one time.
+
+// -----------------------------------------------------------
+//  Points variable -- optional quest requirement.
+//	setarray .Points$[0],"<variable name>","<display name>";
+// -----------------------------------------------------------
+
+	setarray .Points$[0],"#CASHPOINTS","Cash Points";
+
+// -----------------------------------------------------------
+//  Shop IDs -- to add shops, copy dummy data at bottom of file.
+//	setarray .Shops$[1],"<Shop 1>","<Shop 2>"{,...};
+// -----------------------------------------------------------
+
+
+
+// -----------------------------------------------------------
+//  Quest items -- do NOT use a reward item more than once!
+//	Add(<shop ID>,<reward ID>,<reward amount>,
+//	    <Zeny cost>,<point cost>,
+//	    <required item ID>,<required item amount>{,...});
+// -----------------------------------------------------------
+	
+	//Tier 1 Upper, Middle, Lower
+
+	Add(1,33206,1,0,0,7179,50); //Angel Mini Silk
+	Add(1,33050,1,0,0,7179,50); //Black Note HP
+	Add(1,33028,1,0,0,7179,50); //Dowry
+	Add(1,33146,1,0,0,7179,50); //Enchanted Magical Hat
+	Add(1,33155,1,0,0,7179,50); //Fashion Fruit Hat
+	Add(1,33145,1,0,0,7179,50); //Gundam Helm
+	Add(1,33146,1,0,0,7179,50); //Red Note HP
+	Add(1,33177,1,0,0,7179,50); //Seracillas Ribbon
+	Add(1,33105,1,0,0,7179,50); //Spike Headphone
+	Add(1,33047,1,0,0,7179,50); //Sygnum Helm
+	// Add(1,18741,1,0,0,7179,50); //Will of wisp
+
+	//Add(2,18742,1,0,0,7179,50); //C_MoonStar_Accessory
+	//Add(2,18744,1,0,0,7179,50); //C_World_Star
+	//Add(2,19022,1,0,0,7179,50); //Floating_Stone_Of_Int
+	Add(2,33175,1,0,0,7179,50); //Vendetta Mask
+	
+	Add(3,33054,1,0,0,7179,50); //Day Ring
+	Add(3,33204,1,0,0,7179,50); //Flower Ring
+	Add(3,33060,1,0,0,7179,50); //Night Ring
+
+	//Tier 2 Upper, Middle, Lower
+
+	Add(4,33061,1,0,0,7179,150); //Side Hat 
+	Add(4,33147,1,0,0,7179,150); //Black Enchanted Magical Hat
+	Add(4,33202,1,0,0,7179,150); //Black Helm
+	Add(4,33175,1,0,0,7179,150); //Darkness
+	Add(4,33179,1,0,0,7179,150); //Devil Whisper
+	Add(4,33152,1,0,0,7179,150); //Harlequin
+	Add(4,33156,1,0,0,7179,150); //Hangging
+	Add(4,33182,1,0,0,7179,150); //Picollo Hat
+	Add(4,33149,1,0,0,7179,150); //Pink GBH
+	Add(4,33091,1,0,0,7179,150); //Reisz Helm
+	Add(4,33039,1,0,0,7179,150); //Cloud
+	Add(4,33040,1,0,0,7179,150); //Fog
+	Add(4,33038,1,0,0,7179,150); //Leaf Headprotector
+	Add(4,33042,1,0,0,7179,150); //Rock
+	Add(4,33043,1,0,0,7179,150); //Sand
+	Add(4,33046,1,0,0,7179,150); //Sound
+
+	Add(5,33099,1,0,0,7179,150); //Acq Sight Goggle
+	Add(5,33150,1,0,0,7179,150); //Bone Mask
+	Add(5,33081,1,0,0,7179,150); //Tobi Mask
+
+	Add(6,33201,1,0,0,7179,150); //Back Sword
+	Add(6,33100,1,0,0,7179,150); //Dre Headphones
+	Add(6,33096,1,0,0,7179,150); //White LHZ Aura
+
+	//Tier 3 Upper, Middle, Lower
+
+	Add(7,33140,1,0,0,7179,300); //Black Bapho Horns
+	Add(7,33053,1,0,0,7179,300); //Creed Helm
+	Add(7,33088,1,0,0,7179,300); //D. Helm
+	Add(7,33169,1,0,0,7179,300); //Evil GBH
+	Add(7,33089,1,0,0,7179,300); //Megaman Zero Helm
+	Add(7,33030,1,0,0,7179,300); //Blue VH
+	Add(7,33033,1,0,0,7179,300); //Green VH
+	Add(7,33032,1,0,0,7179,300); //Red VH
+
+	Add(8,33093,1,0,0,7179,300); //Glowing Red Cyclops Eye
+	Add(8,33181,1,0,0,7179,300); //Obito Glasses
+	Add(8,33095,1,0,0,7179,300); //Robo Eyes
+
+	Add(9,33164,1,0,0,7179,300); //Darkness
+	Add(9,33174,1,0,0,7179,300); //Tenzu Zangesu
+	Add(9,33070,1,0,0,7179,300); //Blue LHZ
+	Add(9,33068,1,0,0,7179,300); //Green LHZ
+
+	Add(10,33085,1,0,0,7179,300); //Snow Beanie
+	Add(10,33084,1,0,0,7179,300); //Snow Goggles
+	Add(10,33083,1,0,0,7179,300); //Snow Board
+	Add(10,33160,1,0,0,7179,300); //Cell Head
+	Add(10,33161,1,0,0,7179,300); //Cell Tail
+
+	//Tier 4 Upper, Middle, Lower, Garment, Accessory
+
+	Add(11,33086,1,0,0,7179,500); // Angelic VH
+	Add(11,33034,1,0,0,7179,500); // Arch/Fallen VH
+	Add(11,33025,1,0,0,7179,500); // Black VH
+	Add(11,33036,1,0,0,7179,500); // Hokage
+	Add(11,33056,1,0,0,7179,500); // Fallen B Hat
+	Add(11,33209,1,0,0,7179,500); // Rune Helm
+
+	Add(12,33210,1,0,0,7179,500); // Eyes of Ifrit
+	Add(12,33170,1,0,0,7179,500); // Full Hallow Mask
+	Add(12,33057,1,0,0,7179,500); // Hallow
+
+	Add(13,33205,1,0,0,7179,500); // Dragon Aura
+	Add(13,33104,1,0,0,7179,500); // Dragon Sword
+	Add(13,33208,1,0,0,7179,500); // Open Air
+	Add(13,33078,1,0,0,7179,500); // Rune Knight
+	Add(13,33069,1,0,0,7179,500); // Black LHZ Aura
+	Add(13,33072,1,0,0,7179,500); // Red LHZ Aura
+
+	Add(14,33092,1,0,0,7179,500); // Super Saiyan Hair
+	Add(14,33211,1,0,0,7179,500); // Super Saiyan Aura
+	Add(14,33166,1,0,0,7179,500); // Demonic Cloak
+	Add(14,33167,1,0,0,7179,500); // Demonic Tail
+	Add(14,33157,1,0,0,7179,500); // Beast Head
+	Add(14,33158,1,0,0,7179,500); // Beast Taurus
+	//Add(14,33135,1,0,0,7179,500); // Flemres V1
+	//Add(14,33136,1,0,0,7179,500); // Flemres V2
+	//Add(14,33137,1,0,0,7179,500); // Flemres V3
+	
+	//Add(15,20761,1,0,0,7179,20); //wing of hapinnes
+	//Add(15,20762,1,0,0,7179,20); //Great Devil Wings
+	//Add(15,20727,1,0,0,7179,20); //Golden Wing
+	//Add(15,20737,1,0,0,7179,20); //kirin wing
+	//Add(15,20746,1,0,0,7179,20); //C_Rudra_Wing	
+	//Add(15,20763,1,0,0,7179,150); //Amistr Bag
+
+	Add(16,33000,1,0,0,7179,500); //acolyte
+	Add(16,33001,1,0,0,7179,500); //archer
+	Add(16,33002,1,0,0,7179,500); //magician
+	Add(16,33003,1,0,0,7179,500); //merchant
+	Add(16,33004,1,0,0,7179,500); //swordsman
+	Add(16,33005,1,0,0,7179,500); //thief
+
+// -----------------------------------------------------------
+	freeloop(0);
+
+	end;
+
+OnMenu:
+	deletearray .Shops$;
+	if (@tiershop == 1)
+		{
+		setarray .Shops$[1],"Upper Headgear","Middle Headgear","Lower Headgear";
+		set .menu$,"";
+		set @tier,0;
+		for(set .@i,1; .@i<=getarraysize(.Shops$); set .@i,.@i+1) {
+			set .menu$, .menu$+.Shops$[.@i]+":";
+			set .@i2,.@i + @tier;
+			npcshopdelitem "costumVouchershop"+.@i2,909;
+		}
+	}
+	if (@tiershop == 2)
+		{
+		setarray .Shops$[1],"Upper Headgear","Middle Headgear","Lower Headgear";
+		set .menu$,"";
+		set @tier,3;
+		for(set .@i,1; .@i<=getarraysize(.Shops$); set .@i,.@i+1) {
+			set .menu$, .menu$+.Shops$[.@i]+":";
+			set .@i2,.@i + @tier;
+			npcshopdelitem "costumVouchershop"+.@i2,909;
+		}	
+	}
+	if (@tiershop == 3)
+		{
+		setarray .Shops$[1],"Upper Headgear","Middle Headgear","Lower Headgear","Fashionable Set";
+		set .menu$,"";
+		set @tier,6;
+		for(set .@i,1; .@i<=getarraysize(.Shops$); set .@i,.@i+1) {
+			set .menu$, .menu$+.Shops$[.@i]+":";
+			set .@i2,.@i + @tier;
+			npcshopdelitem "costumVouchershop"+.@i2,909;
+		}
+	}
+	if (@tiershop == 4)
+		{
+		setarray .Shops$[1],"Upper Headgear","Middle Headgear","Lower Headgear","Fashionable Set","Robe","Accessories";
+		set .menu$,"";
+		set @tier,10;
+		for(set .@i,1; .@i<=getarraysize(.Shops$); set .@i,.@i+1) {
+			set .menu$, .menu$+.Shops$[.@i]+":";
+			set .@i2,.@i + @tier;
+			npcshopdelitem "costumVouchershop"+.@i2,909;
+		}
+
+	}
+
+	set .@size, getarraysize(@i);
+	if (!.@size) set .@i, select(.menu$);
+	else if (.@size == 1) set .@i, @i[0];
+	else {
+		for(set .@j,0; .@j<.@size; set .@j,.@j+1)
+			{
+			set .@menu$, .@menu$+.Shops$[@i[.@j]]+":";
+			}
+		set .@i, @i[select(.@menu$)-1];
+	}
+	deletearray @i[0],getarraysize(@i);
+	if (.Shops$[.@i] == "") {
+		message strcharinfo(PC_NAME),"An error has occurred.";
+		end;
+	}
+	dispbottom "Select one item at a time.";
+	set .@i,.@i + @tier;
+	callshop "costumVouchershop"+.@i,1;
+	npcshopattach "costumVouchershop"+.@i;
+	end;
+
+OnBuyItem:
+	// .@q[] : RewardID, BoughtAmt, RewardAmt, BaseAmt, ReqZeny, ReqPts, { ReqItem, ReqAmt, ... }
+	setarray .@q[0],@bought_nameid[0],((@bought_quantity[0] > .MaxStack)?.MaxStack:@bought_quantity[0]);
+	copyarray .@q[3],getd(".q_"+.@q[0]+"[0]"),getarraysize(getd(".q_"+.@q[0]));
+	set .@q[2],.@q[1]*.@q[3];
+	if (!.@q[2] || .@q[2] > 30000) {
+		message strcharinfo(PC_NAME),"You can't purchase that many "+getitemname(.@q[0])+".";
+		end;
+	}
+	mes "[Costume Voucher Shop]";
+	mes "Reward: ^0055FF"+((.@q[2] > 1)?.@q[2]+"x ":"")+Slot(.@q[0])+"^000000";
+	mes "Requirements:";
+	if (.@q[4]) mes " > "+Chk(Zeny,.@q[4]*.@q[1])+(.@q[4]*.@q[1])+" Zeny^000000";
+	if (.@q[5]) mes " > "+Chk(getd(.Points$[0]),.@q[5]*.@q[1])+(.@q[5]*.@q[1])+" "+.Points$[1]+" ("+getd(.Points$[0])+"/"+(.@q[5]*.@q[1])+")^000000";
+	if (.@q[6]) for(set .@i,6; .@i<getarraysize(.@q); set .@i,.@i+2)
+		mes " > "+Chk(countitem(.@q[.@i]),.@q[.@i+1]*.@q[1])+((.ShowID)?"{"+.@q[.@i]+"} ":"")+Slot(.@q[.@i])+" ("+countitem(.@q[.@i])+"/"+(.@q[.@i+1]*.@q[1])+")^000000";
+	next;
+	setarray @qe[1], getiteminfo(.@q[0], ITEMINFO_LOC), getiteminfo(.@q[0], ITEMINFO_VIEWSPRITE);
+	if (@qe[2] > 0 && ((@qe[1] & EQP_HEAD_LOW) || (@qe[1] & EQP_HEAD_TOP) || (@qe[1] & EQP_HEAD_MID) || (@qe[1] & EQP_COSTUME_HEAD_TOP) || (@qe[1] & EQP_COSTUME_HEAD_MID) || (@qe[1] & EQP_COSTUME_HEAD_LOW) || (@qe[1] & EQP_GARMENT) || (@qe[1] & EQP_COSTUME_GARMENT)))
+		set .@preview,1;
+	addtimer 1000, strnpcinfo(NPC_NAME)+"::OnEnd";
+	while(1) {
+		switch(select(" ~ ^777777Cancel^000000", ((.@preview && !@qe[7])?" ~ Preview...": ""), " ~ Purchase ^0055FF"+ getitemname(.@q[0]) +"^000000")) {
+		case 1:
+			close;
+		case 2:
+			setarray @qe[3], getlook(LOOK_HEAD_BOTTOM), getlook(LOOK_HEAD_TOP), getlook(LOOK_HEAD_MID), getlook(LOOK_ROBE), 1;
+			if ((@qe[1] & 1) || (@qe[1] & 4096)) changelook LOOK_HEAD_BOTTOM, @qe[2];
+			else if ((@qe[1] & 256) || (@qe[1] & 1024)) changelook LOOK_HEAD_TOP, @qe[2];
+			else if ((@qe[1] & 512) || (@qe[1] & 2048)) changelook LOOK_HEAD_MID, @qe[2];
+			else if ((@qe[1] & 4) || (@qe[1] & 8192)) changelook LOOK_ROBE, @qe[2];
+			break;
+		case 3:
+			if (@qe[0]) {
+				mes "[Costume Voucher Shop]";
+				mes "You're missing one or more quest requirements.";
+				close;
+			}
+			if (!checkweight(.@q[0],.@q[2])) {
+				mes "[Costume Voucher Shop]";
+				mes "^FF0000You need "+(((.@q[2] * getiteminfo(.@q[0], ITEMINFO_WEIGHT)) + Weight - MaxWeight) / 150)+" additional weight capacity to complete this trade.^000000";
+				close;
+			}
+			if (.@q[4]) Zeny -= (.@q[4]*.@q[1]);
+			if (.@q[5]) setd .Points$[0], getd(.Points$[0])-(.@q[5]*.@q[1]);
+			if (.@q[6]) for(set .@i,6; .@i<getarraysize(.@q); set .@i,.@i+2)
+				delitem .@q[.@i],.@q[.@i+1]*.@q[1];
+			getitem .@q[0],.@q[2];
+			if (.Announce) announce strcharinfo(PC_NAME)+" has created "+((.@q[2] > 1)?.@q[2]+"x "+getitemname(.@q[0]):A_An(getitemname(.@q[0])))+"!",0;
+			specialeffect(EF_FLOWERLEAF, AREA, playerattached());
+			close;
+		}
+	}
+
+OnEnd:
+	if (@qe[7]) {
+		changelook LOOK_HEAD_BOTTOM, @qe[3];
+		changelook LOOK_HEAD_TOP, @qe[4];
+		changelook LOOK_HEAD_MID, @qe[5];
+		changelook LOOK_ROBE, @qe[6];
+	}
+	deletearray @qe[0],8;
+	end;
+
+function Add {
+	if (getitemname(getarg(1)) == "null") {
+		consolemes(CONSOLEMES_WARNING, "Quest reward #"+getarg(1)+" invalid (skipped).");
+		return;
+	}
+	setarray .@j[0],getarg(2),getarg(3),getarg(4);
+	for(set .@i,5; .@i<getargcount(); set .@i,.@i+2) {
+		if (getitemname(getarg(.@i)) == "null") {
+			consolemes(CONSOLEMES_WARNING,  "Quest requirement #"+getarg(.@i)+" invalid (skipped).");
+			return;
+		} else
+			setarray .@j[.@i-2],getarg(.@i),getarg(.@i+1);
+	}
+	copyarray getd(".q_"+getarg(1)+"[0]"),.@j[0],getarraysize(.@j);
+	npcshopadditem "costumVouchershop"+getarg(0),getarg(1),((.ShowZeny)?getarg(6):0);
+	return;
+}
+
+function Chk {
+	if (getarg(0) < getarg(1)) {
+		set @qe[0],1;
+		return "^FF0000";
+	} else
+		return "^00FF00";
+}
+
+function Slot {
+	set .@s$,getitemname(getarg(0));
+	switch(.ShowSlot) {
+		case 1: if (!getitemslots(getarg(0))) return .@s$;
+		case 2: if (getiteminfo(getarg(0), ITEMINFO_TYPE) == IT_WEAPON || getiteminfo(getarg(0), ITEMINFO_TYPE) == IT_ARMOR) return .@s$+" ["+getitemslots(getarg(0))+"]";
+		default: return .@s$;
+	}
+}
+
+function A_An {
+	setarray .@A$[0],"a","e","i","o","u";
+	set .@B$, "_"+getarg(0);
+	for(set .@i,0; .@i<5; set .@i,.@i+1)
+		if (compare(.@B$,"_"+.@A$[.@i])) return "an "+getarg(0);
+	return "a "+getarg(0);
+}
+}
+
+function	script	costumVouchershop	{
+	mes "[ Costume Voucher Shop ]";
+	mes "You can use your Survival Voucher in exchange for costume items.";
+	mes "Please take a look what inside.";
+	deletearray @i[0],getarraysize(@i);
+	for(set .@i,0; .@i<getargcount(); set .@i,.@i+1)
+		set @i[.@i],getarg(.@i);
+	doevent "costume_Voucher_shop::OnMenu";
+	end;
+}
+
+
+// Dummy shop data -- copy as needed.
+//============================================================
+-	shop	costumVouchershop1	FAKE_NPC,909:-1
+-	shop	costumVouchershop2	FAKE_NPC,909:-1
+-	shop	costumVouchershop3	FAKE_NPC,909:-1
+-	shop	costumVouchershop4	FAKE_NPC,909:-1
+-	shop	costumVouchershop5	FAKE_NPC,909:-1
+-	shop	costumVouchershop6	FAKE_NPC,909:-1
+-	shop	costumVouchershop7	FAKE_NPC,909:-1
+-	shop	costumVouchershop8	FAKE_NPC,909:-1
+-	shop	costumVouchershop9	FAKE_NPC,909:-1
+-	shop	costumVouchershop10	FAKE_NPC,909:-1
+-	shop	costumVouchershop11	FAKE_NPC,909:-1
+-	shop	costumVouchershop12	FAKE_NPC,909:-1
+-	shop	costumVouchershop13	FAKE_NPC,909:-1
+-	shop	costumVouchershop14	FAKE_NPC,909:-1
+-	shop	costumVouchershop15	FAKE_NPC,909:-1
+-	shop	costumVouchershop16	FAKE_NPC,909:-1

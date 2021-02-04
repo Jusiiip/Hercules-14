@@ -1,0 +1,22 @@
+veil,110,95,6	script	Beta Reward	4W_SAILOR,{	
+
+	if(#cbtrwrd == 1) {
+		mes "[ Beta Reward ]";
+		mes "You already got your reward!  Thank you for being part of our Open Beta Test.";
+		close;
+	}
+	getitembound 12903,2,1; 
+	getitembound 12904,2,1; 
+	getitembound 12905,2,1; 
+	getitembound 12906,2,1; 
+	getitembound 12907,2,1; 
+	getitembound 12908,2,1; 
+	getitembound 12902,1,1; 
+	getitembound 14003,10,1; 
+	getitembound 20724,1,1;
+	mes "[ Beta Reward ]";
+	mes "Here's your reward! Thank you for being part of the our Open Beta Test";
+	set #cbtrwrd,1;
+	close; 
+
+}

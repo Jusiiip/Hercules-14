@@ -1,0 +1,121 @@
+firstcity.gat,216,210,4	script	Notice Board#1	2_BULLETIN_BOARD,{
+	mes "[Notice Board]";
+	mes "We are now migrated to another city.";
+	next;
+	savepoint "veil",119,104;
+	warp "veil.gat",119,104;	close;
+	close;
+}
+
+veil.gat,126,165,4	script	WoE Flag#1	4_BOARD3,{
+OnInit:
+	waitingroom "MvP Card Enabled WoE", 0;
+	end;
+	
+	mes "[WoE Flag]";
+	close;
+}
+
+veil.gat,113,165,6	script	WoE Flag#2	4_BOARD3,{
+OnInit:
+	waitingroom "MvP Card Disabled WoE", 0;
+	end;
+	
+	mes "[WoE Flag]";
+	close;
+}
+
+
+veil.gat,131,95,4	script	Information Board#2	2_BULLETIN_BOARD,{
+	mes "[Information Board]";
+	mes "Use @go 25 or @go main to go to main town";
+	next;
+	mes "[Information Board]";
+	mes "Use @go 26 or @go market to go to town market";
+	next;
+	mes "[Information Board]";
+	mes "Use @joinevent to participate on-going event";
+	next;
+	mes "[Information Board]";
+	mes "Use @activitypoints to see your current activity points.";
+	next;
+	mes "[Information Board]";
+	mes "Use @votepoints to see your current vote points.";
+	next;
+	mes "[Information Board]";
+	mes "Use @pvppoints to see your current pvp points.";
+	next;
+	mes "[Information Board]";
+	mes "Use @bgshop to open battleground shop.";
+	next;
+	mes "[Information Board]";
+	mes "Use @security to secure your account.";
+	next;
+	mes "[Information Board]";
+	mes "Use @rokpoints to see your current RoK points.";
+	next;
+	mes "[Information Board]";
+	mes "Use @bonuspoints to see your current bonus points.";
+	next;
+	mes "[Information Board]";
+	mes "Use @quest to go to quest room.";
+	close;
+OnInit:
+	OnTimer5000:
+	delwaitingroom;
+	switch(rand(1,7)) {
+		case 1:
+			waitingroom "@activitypoints to see activity pts", 0;
+			goto Timer;
+			end;
+			break;
+
+		case 2:
+			waitingroom "@pvppoints to see pvp pts", 0;
+			goto Timer;
+			end;
+			
+		case 3:
+			waitingroom "@bgshop to open bg shop", 0;
+			goto Timer;
+			end;
+			
+		case 4:
+			waitingroom "@security to secure your accnt", 0;
+			goto Timer;
+			end;
+			
+		case 5:
+			waitingroom "@rokpoints to see rok pts", 0;
+			goto Timer;
+			end;
+		
+		case 6:
+			waitingroom "@bonuspoints to see bonus pts", 0;
+			goto Timer;
+			end;
+		
+		case 7:
+			waitingroom "@votepoints to see vote pts", 0;
+			goto Timer;
+			end;	
+		case 8:
+			waitingroom "@quest to go to quest room", 0;
+			goto Timer;
+			end;					
+	break;
+
+	Timer:
+		initnpctimer;
+	}
+}
+
+//-- mapflag for firstcity
+firstcity	mapflag	nocommand	99
+firstcity	mapflag	nosave	SavePoint
+firstcity	mapflag	noteleport
+firstcity	mapflag	nowarp
+firstcity	mapflag	nowarpto
+firstcity	mapflag	nomemo
+firstcity	mapflag	notrade
+firstcity	mapflag	noreturn

@@ -1,0 +1,29 @@
+-	script	Punching Bag	FAKENPC,{
+OnInit:
+	setmapflag( "veil",mf_monster_noteleport );
+	monster "veil",145,130,"Punching Bag",1905,1,"Punching Bag::OnDummyKill";
+	monster "veil",146,128,"Punching Bag",1905,1,"Punching Bag::On2DummyKill";
+	monster "veil",147,126,"Punching Bag",1905,1,"Punching Bag::On3DummyKill";
+	end;
+
+OnDummyKill:
+	sleep 2000;
+	monster "veil",145,130,"Punching Bag",1905,1,"Punching Bag::OnDummyKill";
+	end;
+
+On2DummyKill:
+	sleep 2000;
+	monster "veil",146,128,"Punching Bag",1905,1,"Punching Bag::On2DummyKill";
+	end;
+
+On3DummyKill:
+	sleep 2000;
+	monster "veil",147,126,"Punching Bag",1905,1,"Punching Bag::On3DummyKill";
+	end;
+
+
+OnPCAttackEvent:
+	if ( !@test_punch ) end;
+	@dps_damage += @damage;
+	end;
+}

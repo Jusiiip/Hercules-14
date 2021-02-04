@@ -1,0 +1,29 @@
+-	script	anounce	FAKE_NPC,{
+
+OnClock0015:
+OnClock0315:
+OnClock0615:
+OnClock0915:
+OnClock1215:
+OnClock1515:
+OnClock1815:
+OnClock2115:
+announce "Hi everyone! Enjoy playing here in SurvivalRO where we aim to give you the most exciting and challenging server as possible",0;
+sleep 35000;
+
+announce "Please be guided that you must always remember that any SurvivalRO Staffs will never ask for your *PASSWORD*",0;
+sleep 35000;
+
+announce "Kindly ensure that you secure all of your transactions in SurvivalRO",0;
+sleep 35000;
+
+announce "Any hack or scam issue will not be held liable by any of the SurvivalRO Staff Member",0;
+sleep 35000;
+
+announce "Please ensure that you have read the rules and regulation of the server",0;
+sleep 35000;
+
+announce "Enjoy your stay and have fun playing SurvivalRO where your journey begins!",0;
+
+end;
+}

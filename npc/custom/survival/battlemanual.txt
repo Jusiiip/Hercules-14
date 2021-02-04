@@ -1,0 +1,16 @@
+firstcity,235,223,4	script	Battle Manual	4_F_ACOLYTE,{
+
+    if( #Bug_Npc == 1) {
+		mes "[ ^000088 Battle Manual^000000 ]";
+		mes "You already get a battle manual";	
+		close;
+    }
+
+	mes "[ ^000088Battle Manual^000000 ]";
+    mes "Hello there, Here is your Free Battle Manual..";
+	mes "Sorry for inconvenience.";
+	set #Bug_Npc, 1;
+	getitem 12208, 1;
+
+    close;	
+}

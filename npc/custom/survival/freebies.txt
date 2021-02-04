@@ -1,0 +1,123 @@
+quiz_test,319,150,4	script	Administrator	4_M_OPERATION,{
+   
+
+    if(#quest_done == 2 && #quest_wing == 1) {
+		mes "[ ^000088 Administrator^000000 ]";
+		mes "Welcome to Survival Ragnarok Online";	
+		
+		getitem 12208,2;
+		getitem 14606,2;
+		savepoint "veil",119,104;
+		warp "veil.gat",119,104;	close;
+		close;
+    }
+	if(#quest_done != 2) {
+		mes "[ ^000088Administrator^000000 ]";
+		mes "Hello there, I'm Administrator.";
+		mes "Welcome to Survival Ragnarok Online.";
+		next;
+		mes "[ ^000088Administrator^000000 ]";
+		mes "We the SurvivalRO Staff provide freebies for new players.";
+		next;
+		mes "[ ^000088Administrator^000000 ]";
+		mes "we only give 1 freebie per account, so use this freebie wisely.";
+		mes "NOTE: THESE ARE ACCOUNT BOUNDED";
+		next;
+		mes "[ ^000088Administrator^000000 ]";
+		mes "For you to have an idea what are the freebies";
+		mes "We provide you this list: ";
+		mes "500 Light Orange Potion";
+		mes "4x Field and Job Battle Manual";
+		mes "10 Pcs Elite Siege Box";
+		mes "1 Pc Feather Beret";
+		mes "Valkyrie Armor";
+		mes "Valkyrie Manteau";
+		mes "Valkyrie Shoes";
+		mes "Valkyrie Shield";
+		mes "2 Orleans Glove";
+		mes "2 Midgard Coin (1m ea)";
+		mes "50 Pcs Bomb Box (500 Pcs)";
+		mes "and a +10 Weapon of your choice!";	
+		next;
+		mes "[ ^000088Administrator^000000 ]";
+		mes "Please select what item you want";
+		switch(select("+10 Blade[4]:+10 Axe[4]:+10 Rod[4]:+10 Composite Bow[4]:+10 Main Gauche[4]:+10 Pike[4]:+10 Waghnak[4]:+10 Violin[4]:+10 Rope")) {
+		case 1:	// Blade 1108
+			{getitem2 1108,1,1,10,0,0,0,0,0;break;}
+		case 2:	// Axe
+			{getitem2 1302,1,1,10,0,0,0,0,0;break;}
+		case 3:	// Rod
+			{getitem2 1602,1,1,10,0,0,0,0,0;break;}
+		case 4:	// Composite Bow
+			{getitem2 1705,1,1,10,0,0,0,0,0;break;}
+		case 5:	// Main Gauche
+			{getitem2 1208,1,1,10,0,0,0,0,0;break;}
+		case 6:	// Pike
+			{getitem2 1408,1,1,10,0,0,0,0,0;break;}
+		case 7:	// Waghnak
+			{getitem2 1802,1,1,10,0,0,0,0,0;break;}
+		case 8:	// Violin
+			{getitem2 1902,1,1,10,0,0,0,0,0;break;}
+		case 9:// Rope
+			{getitem2 1951,1,1,10,0,0,0,0,0;break;}
+		}
+		getitembound2 2357,1,1,0,0,0,0,0,0,1;	//1 PcValkyrie Armor - Account Bounded
+		getitembound2 2524,1,1,0,0,0,0,0,0,1;	//1 Pc Valkyrie Manteau - Account Bounded
+		getitembound2 2421,1,1,0,0,0,0,0,0,1;	//1 Pc Valkyrie Shoes - Account Bounded
+		getitembound2 2115,1,1,0,0,0,0,0,0,1;	//1 Pc Valkyrie Shield - Account Bounded
+		getitembound2 2785,1,1,0,0,0,0,0,0,1;	//1 Pc Orlean's Glove - Account Bounded
+		getitembound2 2785,1,1,0,0,0,0,0,0,1;	//1 Pc Orlean's Glove - Account Bounded
+		getitembound2 5170,1,1,0,0,0,0,0,0,1;	//1 Pc Feather Beret - Account Bounded
+		getitem 14003,10;			//10 Pcs Elite Seige Box 10pcs
+		getitem 13989,50;			//50 Pcs Bomb Box (500 Pcs set)
+		getitem 12208,4;			//4 Pcs Battle Manual 50%
+		getitem 14606,4;			//4 Pcs Job Battle Manual 25%
+		getitem 6242,2;				//2 Pcs Midgard Coin 
+		set #quest_done, 2;
+		next;	
+	}
+	if(#quest_wing != 1){
+	mes "[ ^000088Administrator^000000 ]";
+	mes "here some more!";
+	mes "You may choose 1 set of costume.";
+	mes " ";
+	mes "The path of the Archangels";
+	mes "The path of the Fallen Angels";
+	switch(select("I want to follow the path of Archangels.:I want to follow the patch of the Fallen Angels.")) {
+	case 1:	
+		getitem 33007,1;
+		getitem 20250,1;
+		set #quest_wing, 1;
+		break;
+	case 2:	
+		getitem 20248,1;
+		getitem 33006,1;
+		set #quest_wing, 1;
+		break;
+	}
+	next;
+	}	
+	
+    mes "[ ^000088Administrator^000000 ]";
+    mes "Freebie has been given.";
+    mes "Check your Inventory to see Items";
+    next;
+	
+	
+    mes "[ ^000088Administrator^000000 ]";
+    mes "Enjoy your freebies.";
+	savepoint "veil",119,104;
+	warp "veil.gat",119,104;	close;
+    close;	
+}
+
+
+//-- mapflag for freebies
+quiz_test	mapflag	nocommand	99
+quiz_test	mapflag	nosave	SavePoint
+quiz_test	mapflag	noteleport
+quiz_test	mapflag	nowarp
+quiz_test	mapflag	nowarpto
+quiz_test	mapflag	nomemo
+quiz_test	mapflag	notrade
+quiz_test	mapflag	noreturn

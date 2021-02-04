@@ -1,0 +1,419 @@
+
+function	script	F_GetNumSuffix	{
+	set .@n, getarg(0);
+	set .@mod, .@n % 10;
+	if      (.@mod == 1 && .@n != 11) return .@n+"st";
+	else if (.@mod == 2 && .@n != 12) return .@n+"nd";
+	else if (.@mod == 3 && .@n != 13) return .@n+"rd";
+	else return .@n+"th";
+}
+
+
+veil,92,119,5	script	Race Ranking::poring_rc_rank	4_M_PECOKNIGHT,{
+	doevent "poring_rc_main::OnRank";
+}
+
+veil,92,117,5	duplicate(poring_rc_rank)	Race Ranking#1	4_M_PECOKNIGHT
+// prontera,155,173,5	duplicate(poring_rc_rank)	Race Ranking#2	4_M_PECOKNIGHT
+// prontera,155,174,5	duplicate(poring_rc_rank)	Race Ranking#3	4_M_PECOKNIGHT
+// prontera,155,175,5	duplicate(poring_rc_rank)	Race Ranking#4	4_M_PECOKNIGHT
+// prontera,155,176,5	duplicate(poring_rc_rank)	Race Ranking#5	4_M_PECOKNIGHT
+// prontera,155,177,5	duplicate(poring_rc_rank)	Race Ranking#6	4_M_PECOKNIGHT
+// prontera,155,178,5	duplicate(poring_rc_rank)	Race Ranking#7	4_M_PECOKNIGHT
+
+/*
+veil,103,104,5	script	poring_rc_portal	FAKENPC,{
+	OnTouch:
+		doevent "poring_rc_main::OnEnter";
+		end;
+}
+*/
+poring_rc,68,111,4	script	Poring Race Track	4_M_PECOKNIGHT,{
+	emotion e_go;
+	end;
+}
+
+-	script	poring_rc_main	-1,{
+	if ( .status == 2 )
+		emotion e_go;
+	end;
+	
+	OnFinishRound:
+		if ( .status == 2 ) {
+			@checkpoint = 0;
+			@round_count++;
+			if ( @round_count >= .round ) {
+				.total_winner_count++;
+				switch ( .total_winner_count ) {
+					case 1: 
+						getitem 12281,2;
+						//#CASHPOINTS += 20;
+						break;
+					case 2:
+						getitem 12281,1;
+						//#CASHPOINTS += 10;
+						break;
+					default:
+						break;
+				}
+				.@name$ = strcharinfo(0);
+				.@second = getnpctimer(0);
+				query_sql( "INSERT INTO `event_poringrace_rank` ( `aid`,`cid`,`name`,`record`,`time` ) VALUES ( "+getcharid(3)+","+getcharid(0)+",'"+escape_sql( .@name$ )+"',"+.@second+",NOW() ) " );
+				mes "You're the "+F_GetNumSuffix( .total_winner_count )+" players who finished the tracks.";
+				mes "^FF0000( times: "+sprintf( "%d.%03d",( .@second / 1000 ),( .@second % 1000 ) )+" seconds )^000000";
+				mapannounce .npc_map$,.@name$+" - "+F_GetNumSuffix( .total_winner_count )+" players finished the tracks. ( times: "+sprintf( "%d.%03d",( .@second / 1000 ),( .@second % 1000 ) )+" seconds )",bc_map;
+				// query records
+				close2;
+				donpcevent .npc_name$+"::OnRankUpdate";
+				warp "veil.gat",119,104;
+			}
+			else {
+				announce "[ Race Announcer ]: Round "+@round_count+" / "+.round+"!!",bc_self;
+			}
+		}
+		end;
+		
+	OnRank:
+		mes "Race Ranking : ";
+		if ( !.cid_size ) {
+			mes "No records founds.";
+		}
+		else {
+			.@cid = getcharid(0);
+			for ( .@i = 0; .@i < .cid_size; .@i++ ) {
+				mes F_GetNumSuffix( .@i+1 )+" - "+.name$[.@i];
+				mes "Record -^777777 "+sprintf( "%d.%03d",( .record[.@i] / 1000 ), ( .record[.@i] % 1000 ) )+" sec^000000";
+				mes " ";
+				if ( .cid[.@i] == .@cid ) 
+					.@buff++;
+			}
+			if ( .@buff ) 
+				if ( select( "Buff Me","Cancel" ) == 1 ) {					
+					specialeffect(EF_HEAL2, AREA, playerattached()); percentheal 100,100;
+					specialeffect(EF_INCAGILITY, AREA, playerattached()); sc_start SC_INC_AGI,240000,10;
+					specialeffect(EF_BLESSING, AREA, playerattached()); sc_start SC_BLESSING,240000,10;
+				}
+		}
+		close;
+		
+	OnInit:
+		// how many round
+		.round = 3;
+		
+		// event rules / broadcast message
+		setarray .message$,
+			"This is Racing Event.",
+			"Penalty will be given to players who break the rules.",
+			"There exist some random penalty spot, becareful.",
+			"There are several checkpoints you need to pass before you can finish one round.",
+			"By the way, it's a Anti-Clockwise direction racing.",
+			"Enjoy and race!";
+		.message_size = getarraysize( .message$ );
+		
+		.npc_name$ = strnpcinfo(3);
+		getmapxy( .npc_map$,.npc_x,.npc_y,1,"Poring Race Track" );
+		setmapflag .npc_map$,mf_noskill;
+		setmapflag .npc_map$,mf_noteleport;
+		setmapflag .npc_map$,mf_nomemo;
+		setmapflag .npc_map$,mf_nosave;
+		sleep 1000;
+		mapwarp .npc_map$,"veil", 119,104;
+		movenpc "poring_rc_checkpoint#0",.npc_x,.npc_y;
+		
+	OnRankUpdate:
+		deletearray .cid;
+		query_sql( "SELECT `cid`,`name`,`record` FROM `event_poringrace_rank` ORDER BY `record` LIMIT 10",.cid,.name$,.record );
+		.cid_size = getarraysize( .cid );
+		end;
+	OnStartRace:	
+	OnEventStart:
+		if ( !.status ) {	
+			donpcevent "eventmanager::OnStartEvent";
+			.status = 1;
+			.total_winner_count = 0;
+			
+			for ( .@i = 0; .@i <= 6; .@i++ ) {
+				donpcevent "#poring_rc_wall_1"+.@i+"::OnEnable";
+				donpcevent "#poring_rc_wall_2"+.@i+"::OnEnable";
+			}
+			announce "[ Event Manager ]: The Race Event will begin in 1 minute. Use @joinevent to join.",bc_all|bc_blue;
+			sleep 60000;
+			
+			donpcevent "eventmanager::OnCloseJoinEvent";
+			announce "[ Event Manager ]: The Race Event has begun! Registration is now closed.",bc_all|bc_blue;
+			
+			for ( .@i = 0; .@i < .message_size; .@i++ ) {
+				mapannounce .npc_map$,.message$[.@i],bc_map;
+				npctalk .message$[.@i];
+				sleep 5000;
+			}
+			
+			for ( .@i = 3; .@i > 0; .@i-- ) {
+				mapannounce .npc_map$,"[ Race Announcer ]: "+.@i,bc_map;
+				npctalk ""+.@i;
+				sleep 1000;
+			}
+			
+			mapannounce .npc_map$,"[ Race Announcer ]: GO!!!",bc_map;
+			npctalk "GO!!";
+			emotion e_go;
+			
+			for ( .@i = 0; .@i <= 6; .@i++ ) {
+				donpcevent "#poring_rc_wall_1"+.@i+"::OnDisable";
+				donpcevent "#poring_rc_wall_2"+.@i+"::OnDisable";
+			}
+			
+			.status = 2;
+			initnpctimer;
+		}
+		end;
+	OnTimer240000: // 4 minutes
+		.status = 0;
+		stopnpctimer;
+		mapannounce .npc_map$,"[ Race Announcer ]: Race Event Time's UP!",bc_map;
+		sleep 5000;
+		mapannounce .npc_map$,"[ Race Announcer ]: Race Event Result - We got "+.total_winner_count+" winners.",bc_map;
+		sleep 10000;
+		donpcevent "eventmanager::OnEndEvent";
+		mapwarp .npc_map$,"veil",119,104;
+		end;
+		
+	OnEnter:
+		if ( .status == 1 ) {
+			if ( hascashmount() ) {
+				dispbottom "[ Race Announcer ]: Please remove your mount.";
+			}
+			else if ( checkmount() ) {
+				dispbottom "[ Race Announcer ]: Please remove your mount.";
+			}
+			else {
+				@checkpoint = 0;
+				@round_count = 0;
+				
+				warp .npc_map$,.npc_x,.npc_y;
+			}
+		}
+		end;
+}
+
+
+poring_rc,1,1,0	script	poring_rc_checkpoint#0	EF_SANDMAN,4,4,{
+	OnTouch:
+		.@checkpoint = atoi( strnpcinfo(2) );
+		
+		if ( getvariableofnpc( .status,"poring_rc_main" ) == 2 ) {
+		
+			if ( @checkpoint >= .@checkpoint ) {
+				dispbottom "You have reached this Checkpoint # "+( ( .@checkpoint != 0 )? .@checkpoint:( @round_count == 0 ) ? 0:.max_checkpoint )+" previously.";
+			}
+			else if ( @checkpoint != ( .@checkpoint - 1 ) ) {
+				mes "You didnt reach Checkpoint # "+( ( .@checkpoint == 0 )? .max_checkpoint:( .@checkpoint-1 ) )+".";
+				close2;
+				// warp 
+			}
+			else {
+				.@next = (( .@checkpoint+1 ) % .max_checkpoint );
+				@checkpoint = .@next - 1;
+				
+				
+				getmapxy( .@map$,.@x,.@y,1,"poring_rc_checkpoint#"+.@next );
+				viewpoint 1,.@x,.@y,1,0x00EE00;
+				announce "You reached "+F_GetNumSuffix( .@checkpoint )+" Checkpoint. "+F_GetNumSuffix( .@next == 0 ? .max_checkpoint:.@next )+" Checkpoint at ( "+.@x+","+.@y+" )",bc_self|bc_blue;
+				// announce "You reached "+F_GetNumSuffix( .@checkpoint )+" Checkpoint. ",bc_self;
+				
+				if ( .@next == 1 ) {
+					doevent "poring_rc_main::OnFinishRound";
+				}
+			}
+		}
+		end;
+		
+	OnInit:
+		.max_checkpoint++;
+		end;
+}
+
+poring_rc,45,111,4	duplicate(poring_rc_checkpoint#0)	poring_rc_checkpoint#1	EF_SANDMAN,4,4
+poring_rc,49,83,4	duplicate(poring_rc_checkpoint#0)	poring_rc_checkpoint#2	EF_SANDMAN,4,4
+poring_rc,93,66,4	duplicate(poring_rc_checkpoint#0)	poring_rc_checkpoint#3	EF_SANDMAN,4,4
+poring_rc,119,47,4	duplicate(poring_rc_checkpoint#0)	poring_rc_checkpoint#4	EF_SANDMAN,4,4
+poring_rc,134,65,4	duplicate(poring_rc_checkpoint#0)	poring_rc_checkpoint#5	EF_SANDMAN,4,4
+poring_rc,117,107,4	duplicate(poring_rc_checkpoint#0)	poring_rc_checkpoint#6	EF_SANDMAN,4,4
+poring_rc,95,111,4	duplicate(poring_rc_checkpoint#0)	poring_rc_checkpoint#7	EF_SANDMAN,4,4
+
+
+
+-	script	poring_rc_wall	RED_MUSHROOM,{
+	end;
+	
+	OnEnable: 
+		callsub( L_setup,1 );
+		end;
+	
+	OnInit:
+		if ( strnpcinfo(2) == "" ) 
+			end;
+	OnDisable:
+		callsub( L_setup,0 );
+		end;
+		
+	L_setup:
+		.@param = getarg( 0,0 );
+		.@npc_name$ = strnpcinfo(0);
+		
+		getmapxy( .@map$,.@x,.@y,1 );
+		if ( .@param ) {
+			hideoffnpc .@npc_name$;
+		}
+		else {
+			hideonnpc .@npc_name$;
+		}
+		setcell .@map$,.@x,.@y,.@x,.@y,cell_walkable,!.@param;
+		return;
+}
+
+poring_rc,64,114,4	duplicate(poring_rc_wall)	#poring_rc_wall_10	RED_MUSHROOM
+poring_rc,64,113,4	duplicate(poring_rc_wall)	#poring_rc_wall_11	RED_MUSHROOM
+poring_rc,64,112,4	duplicate(poring_rc_wall)	#poring_rc_wall_12	RED_MUSHROOM
+poring_rc,64,111,4	duplicate(poring_rc_wall)	#poring_rc_wall_13	RED_MUSHROOM
+poring_rc,64,110,4	duplicate(poring_rc_wall)	#poring_rc_wall_14	RED_MUSHROOM
+poring_rc,64,109,4	duplicate(poring_rc_wall)	#poring_rc_wall_15	RED_MUSHROOM
+poring_rc,64,108,4	duplicate(poring_rc_wall)	#poring_rc_wall_16	RED_MUSHROOM
+
+poring_rc,70,114,4	duplicate(poring_rc_wall)	#poring_rc_wall_20	RED_MUSHROOM
+poring_rc,70,113,4	duplicate(poring_rc_wall)	#poring_rc_wall_21	RED_MUSHROOM
+poring_rc,70,112,4	duplicate(poring_rc_wall)	#poring_rc_wall_22	RED_MUSHROOM
+poring_rc,70,111,4	duplicate(poring_rc_wall)	#poring_rc_wall_23	RED_MUSHROOM
+poring_rc,70,110,4	duplicate(poring_rc_wall)	#poring_rc_wall_24	RED_MUSHROOM
+poring_rc,70,109,4	duplicate(poring_rc_wall)	#poring_rc_wall_25	RED_MUSHROOM
+poring_rc,70,108,4	duplicate(poring_rc_wall)	#poring_rc_wall_26	RED_MUSHROOM
+
+
+
+
+
+-	script	poring_rc_dummy	-1,{
+	end;
+	
+	OnInit:
+		if ( strnpcinfo(2) != "" ) {
+			.@npc_name$ = strnpcinfo(0);
+			getmapxy( .@map$,.@x,.@y,1 );
+			.@sprite = rand( 669,682 );
+			setnpcdisplay( .@npc_name$,.@sprite );
+			while ( 1 ) {
+				emotion rand( e_gasp,e_whisp );
+				sleep rand( 3000,10000 );
+				if ( rand( 100 ) < 10 )
+					showscript F_Rand( 
+						"Go ~ Go ~ Go",
+						"Run ~ Run ~ Run ~",
+						"Hurry!",
+						"Come on!!",
+						"Do your best!",
+						"Faster...",
+						"You gotta be kidding...",
+						"You cant be this slow...",
+						"Don't look back, RUN!!",
+						"Pecopeco the best!",
+						"Run Idol ~ run ~"
+					);
+			}
+		}
+		end;
+}
+
+poring_rc,52,124,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_1_1	BARRICADE
+poring_rc,52,122,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_1_2	BARRICADE
+poring_rc,52,119,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_1_3	BARRICADE
+poring_rc,52,116,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_1_4	BARRICADE
+
+poring_rc,57,124,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_2_1	BARRICADE
+poring_rc,57,122,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_2_2	BARRICADE
+poring_rc,57,119,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_2_3	BARRICADE
+poring_rc,57,116,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_2_4	BARRICADE
+
+poring_rc,62,124,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_3_1	BARRICADE
+poring_rc,62,122,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_3_2	BARRICADE
+poring_rc,62,119,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_3_3	BARRICADE
+poring_rc,62,116,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_3_4	BARRICADE
+
+poring_rc,67,124,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_4_1	BARRICADE
+poring_rc,67,122,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_4_2	BARRICADE
+poring_rc,67,119,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_4_3	BARRICADE
+poring_rc,67,116,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_4_4	BARRICADE
+
+poring_rc,72,124,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_5_1	BARRICADE
+poring_rc,72,122,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_5_2	BARRICADE
+poring_rc,72,119,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_5_3	BARRICADE
+poring_rc,72,116,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_5_4	BARRICADE
+
+poring_rc,77,124,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_6_1	BARRICADE
+poring_rc,77,122,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_6_2	BARRICADE
+poring_rc,77,119,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_6_3	BARRICADE
+poring_rc,77,116,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_6_4	BARRICADE
+
+poring_rc,82,124,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_7_1	BARRICADE
+poring_rc,82,122,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_7_2	BARRICADE
+poring_rc,82,119,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_7_3	BARRICADE
+poring_rc,82,116,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_7_4	BARRICADE
+
+poring_rc,87,124,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_8_1	BARRICADE
+poring_rc,87,122,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_8_2	BARRICADE
+poring_rc,87,119,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_8_3	BARRICADE
+poring_rc,87,116,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_8_4	BARRICADE
+
+poring_rc,92,124,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_9_1	BARRICADE
+poring_rc,92,122,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_9_2	BARRICADE
+poring_rc,92,119,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_9_3	BARRICADE
+poring_rc,92,116,4	duplicate(poring_rc_dummy)	#poring_rc_dummy_9_4	BARRICADE
+
+
+
+
+-	script	poring_rc_trap	-1,{
+	
+	OnTouch:
+		specialeffect(EF_SKIDTRAP, AREA, playerattached());
+		if ( getvariableofnpc( .status,"poring_rc_main" ) == 2 ) {
+			.@sc = F_Rand( 
+				SC_STONE,
+				SC_FREEZE,
+				SC_STUN,
+				SC_SLEEP,
+				SC_POISON,
+				SC_CURSE,
+				SC_CONFUSION,
+				SC_BLIND,
+				SC_DEC_AGI,
+				SC_ILLUSION,
+				SC_SLOWDOWN
+			);
+			unitstop getcharid(3);
+			sc_start .@sc,rand( 3000,5000 ),1;
+		}
+		end;
+}
+
+// adjust the coordinate of traps here.
+// duplicate more if you need more.
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_1	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_2	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_3	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_4	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_5	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_6	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_7	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_8	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_9	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_10	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_11	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_12	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_13	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_14	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_15	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_16	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_17	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_18	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_19	4_SOIL,2,2
+poring_rc,1,1,4	duplicate(poring_rc_trap)	???#poring_rc_trap_20	4_SOIL,2,2

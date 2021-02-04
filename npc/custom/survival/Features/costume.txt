@@ -1,0 +1,117 @@
+// -------------------------------------------------------------------------------
+// 	Script Name : Headgear to Costume converter >> Costume to Headgear converter
+// -------------------------------------------------------------------------------
+// Description :
+// - Allows a user to convert the equipped headgear (on Top, Mid or Low) into a
+//   costume item. It will remove any card and refine of the Item.
+// - Allows a user to restore the equipped costume headgear (on Top, Mid or Low)
+//     into its original form. It will not return any card or refine of the item.
+// -------------------------------------------------------------------------------
+-	script	Costume Clown	-1,{
+	mes "[ Clown ]";
+	mes "Here you can convert your headgears into a Costume Headgear or restore to its original form.";
+	next;
+	mes "[ Clown ]";
+	mes "You need 1 Costume Change Ticket to convert into a costume headgear.";
+	mes "10,000,000z to revert to its original form.";
+	switch(select("I want to convert my costume item.:I want to restore to orignal form.:No thanks.")) {
+	case 1:
+			next;
+			mes "[Clown]";
+			mes "Please, select what to headgear you want to convert.";
+			mes "Remember, cards and refine will be removed.";
+			next;
+				setarray .@Position$[1],"Top","Mid","Low";
+				setarray .@Position[1],     EQI_HEAD_TOP,    EQI_HEAD_MID,   EQI_HEAD_LOW;
+				set .@Menu$,"";
+			for( set .@i, 1; .@i < 6; set .@i, .@i + 1 )
+			{
+				if( getequipisequiped(.@Position[.@i]) )
+				set .@Menu$, .@Menu$ + .@Position$[.@i] + "-" + "[" + getequipname(.@Position[.@i]) + "]";
+				set .@Menu$, .@Menu$ + ":";
+			}
+			set .@Part, .@Position[ select(.@Menu$) ];
+			if( !getequipisequiped(.@Part) )
+			{
+				mes "[Clown]";
+				mes "You are not wearing anything there."; 
+				close;
+			}
+			mes "[Clown]";
+			mes "You want to Costume your " + getitemname(getequipid(.@Part)) + "?";
+			next;
+			if( select("Yes, proceed:No, I am sorry.") == 2 )
+			{
+				mes "[Clown]";
+				mes "Need some time to think about it, huh?";
+				mes "Alright, I can understand.";
+				close;
+			}
+			if( countitem(6959) >= 1 ) {
+				delitem 6959,1; 
+				costume .@Part; 
+				mes "[Clown]";
+				mes "Done, enjoy your costume headgear.";				
+			} else {
+				mes "[Clown]";
+				mes "You need 1 pc "+ getitemname(6959);
+				mes "You may get it in Hunting Mission Quest";
+			}
+			close;
+	case 2:
+			next;
+			mes "[Clown]";
+			mes "Please, select what to restore a costume.";
+			mes "Remember, I will only restore it back without refine and cards.";
+			next;
+				setarray .@Position$[1],"Top","Mid","Low";
+				setarray .@Position[1], EQI_COSTUME_HEAD_TOP, EQI_COSTUME_HEAD_MID, EQI_COSTUME_HEAD_LOW;
+				set .@Menu$,"";
+			for( set .@i, 1; .@i < 6; set .@i, .@i + 1 )
+			{
+				if( getequipisequiped(.@Position[.@i]) )
+				set .@Menu$, .@Menu$ + .@Position$[.@i] + "-" + "[" + getequipname(.@Position[.@i]) + "]";
+				set .@Menu$, .@Menu$ + ":";
+			}
+			set .@Part, .@Position[ select(.@Menu$) ];
+			if( !getequipisequiped(.@Part) )
+			{
+				mes "[Clown]";
+				mes "You are not wearing anything there.";
+				close;
+			}
+			mes "[Clown]";
+			mes "You want to restore your " + getitemname(getequipid(.@Part)) + "?";
+			next;
+			if( select("Yes, proceed:No, I am sorry.") == 2 )
+			{
+				mes "[Clown]";
+				mes "Need some time to think about it, huh?";
+				mes "Alright, I can understand.";
+				close;
+			}
+			
+			.@price = 10000000;
+			if (Zeny > .@price) {
+				.@a = getequipid(.@Part);	
+				delitem .@a,1;
+				getitem .@a,1;					
+				Zeny -= .@price;
+				costume .@Part; // Convert the Headgear
+				mes "[Clown]";
+				mes "Done, enjoy your restored headgear.";				
+			} else {
+				mes "[Clown]";
+				mes "You need 10,000,000z in-order to revert your costume to its original form";
+			}
+			close;
+	case 3:
+		mes "[Clown]";
+		mes "Very well. Return at once if you seek my services.";
+		close;
+	}
+}
+// --------------------------------------------------------------------------
+// Use duplicates to put your npc on different cities
+// --------------------------------------------------------------------------
+veil,33,172,4	duplicate(Costume Clown)	Costume Clown#1	4_M_JP_JESTER

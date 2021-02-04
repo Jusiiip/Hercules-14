@@ -1,0 +1,73 @@
+//===== Hercules Script ======================================
+//= Class Setter
+//===== By: ==================================================
+//= Ancyker
+//===== Description: =========================================
+//= Disguises you as various classes.
+//===== Additional Comments: =================================
+//= v1.1 - Bug Fixes
+//= v1.0 - Initial version
+//===== Obtained at: =========================================
+//= https://github.com/Ancyker/PublicScripts/blob/master/SingleFiles/class_setter.txt
+//============================================================
+firstcity,243,257,4	script	Costume Class Setter	4_M_BLACKMAN,{
+	mes "["+strnpcinfo(1)+"]";
+	mes "What can I do for you?";
+	mes "You need a Costume Job Ticket in-order to apply costume job.";
+	next;
+	switch(select("Disguise as Third Class:End All Disguises")) {
+	case 1: // Display everything as third
+		if( countitem(7227) >= 1 ) {
+			set .@eac, eaclass();
+			.@eac |= EAJL_THIRD;
+			set .@job,roclass(.@eac);
+			if (.@job < 0 || !(.@eac&EAJL_2)) {
+				mes "["+strnpcinfo(1)+"]";
+				mes "I'm sorry, but I can't disguise you as this class.";
+				close;
+			} else callfunc "applybase",.@job;
+			
+			mes "["+strnpcinfo(1)+"]";
+			mes "There you go!";
+			close;
+		} else {
+			mes "["+strnpcinfo(1)+"]";
+			mes "You need 1pc "+ getitemname(7227) +"!";
+			close;
+		}
+		break;		
+	default:
+		callfunc "applybase";
+		
+		mes "["+strnpcinfo(1)+"]";
+		mes "There you go!";
+		close;
+			
+		break;
+	}
+}
+
+function	script	applybase	{
+	if (checkmount()) switch (getarg(0,Class)) {
+	case Job_Rune_Knight:
+	case Job_Rune_Knight_T:
+	case Job_Baby_Rune:
+		setoption 0x80000;
+		break;
+	case Job_Knight:
+	case Job_Baby_Knight:
+	case Job_Crusader:
+	case Job_Baby_Crusader:
+	case Job_Lord_Knight:
+	case Job_Paladin:
+	case Job_Royal_Guard:
+	case Job_Royal_Guard_T:
+	case Job_Baby_Guard:
+		setoption 0x20;
+		break;
+	default:
+		break;
+	}
+	changebase getarg(0,Class);
+	return 0;
+}

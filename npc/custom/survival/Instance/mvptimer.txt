@@ -1,0 +1,181 @@
+-	script	MVPTimer	FAKENPC,{
+
+OnInit:
+	setarray $MVP_ID[0],	1719,// detale
+							1492,//Samurai Specter
+							1147,//maya
+							1688,//Lady Tanee
+							1583,//Tao Gunka
+							1623,//RSX
+							1389,//Dracula
+							1046,//Doppel
+							1272,//Dark Lord
+							1289,//Maya Purple
+							1147,//Maya
+							1272,//DarkLord
+							1115,//Eddga
+							1046,// Doppel
+							1418,//ESL
+							1157,//Pharaoh
+							1685,//Vesper
+							1734,//Kiel
+							1630,//white lady
+							1038,//Osiris
+							1511,//amonra
+							1885,//Gopinich
+							1150,//Moonlight Flower
+							1039,//bapho
+							1086,//GTB
+							1768,//Gloom
+							1832,//ifrit
+							1112,//Drake
+							1312,//Turtle Gen
+							1251,//Stormy Knight
+							1871,//FBH
+							1658,//Cenia
+							1087,//Orc Hero
+							1190,//Orc Lord
+							1087,//Orc Hero
+							1252,//Garm
+							1059,//Mistress
+							1159,//Phreeoni
+							1115,//eddga
+							1785,//Atroce
+							1785,//Atroce
+							1785,//Atroce
+							1785,//Atroce
+							1785;//Atroce
+							
+	// Mvp maps
+	setarray $MVP_Maps$[0],	"abyss_03",
+							"ama_dun03",
+							"anthell02",
+							"ayo_dun02",
+							"beach_dun",
+							"ein_dun02",
+							"gef_dun01",
+							"gef_dun02",
+							"gl_chyard",
+							"gld_dun03",
+							"gld_dun03",
+							"gld_dun04",
+							"gld_dun01",
+							"gld_dun02",
+							"gon_dun03",
+							"in_sphinx5",
+							"jupe_core",
+							"kh_dun02",
+							"lou_dun03",
+							"moc_pryd04",
+							"moc_pryd06",
+							"mosk_dun03",
+							"pay_dun04",
+							"prt_maze03",
+							"prt_sewb4",
+							"ra_san05",
+							"thor_v03",
+							"treasure02",
+							"tur_dun04",
+							"xmas_dun02",
+							"abbey02",
+							"lhz_dun02",
+							"gef_fild02",
+							"gef_fild10",
+							"gef_fild14",
+							"xmas_fild01",
+							"mjolnir_04",
+							"moc_fild17",
+							"pay_fild11",
+							"ra_fild02",
+							"ra_fild03",
+							"ra_fild04",
+							"ve_fild01",
+							"ve_fild02";
+	// Respawn time (minutes)
+	setarray $MVP_Time[0],	1,// detale
+							1,//Samurai Specter
+							1,//maya
+							1,//Lady Tanee
+							1,//Tao Gunka
+							1,//RSX
+							1,//Dracula
+							1,//Doppel
+							1,//Dark Lord
+							1,//Maya Purple
+							1,//Maya
+							1,//DarkLord
+							1,//Eddga
+							1,// Doppel
+							1,//ESL
+							1,//Pharaoh
+							1,//Vesper
+							1,//Kiel
+							1,//white lady
+							1,//Osiris
+							1,//amonra
+							1,//Gopinich
+							1,//Moonlight Flower
+							1,//bapho
+							1,//GTB
+							1,//Gloom
+							1,//ifrit
+							1,//Drake
+							1,//Turtle Gen
+							1,//Stormy Knight
+							1,//FBH
+							1,//Cenia
+							1,//Orc Hero
+							1,//Orc Lord
+							1,//Orc Hero
+							1,//Garm
+							1,//Mistress
+							1,//Phreeoni
+							1,//eddga
+							1,//Atroce
+							1,//Atroce
+							1,//Atroce
+							1,//Atroce
+							1;//Atroce
+							
+	// Respawn only undead MVP's on server start or reload
+	for ( set .@i,0; .@i < getarraysize($MVP_ID); set .@i, .@i+1 ) {
+		// check whether MPV is alive or $MVP_Status variable is not yet set.
+		// 1 - Dead, 2 - Alive
+		if ( $MVP_Status[.@i] == 2 || $MVP_Status[.@i] == 0 || $MVP_TimeStamp[.@i] == 0  ) {
+			monster $MVP_Maps$[.@i],0,0,"--ja--",$MVP_ID[.@i],1;
+			set $MVP_Status[.@i], 2;
+		} else {
+			// don't respawn MVP and wait for next spawn time
+			set $MVP_Status[.@i], 1;
+		}
+	}
+	initnpctimer;
+	
+	
+OnTimer60000:
+	// Check every 1 minute
+	for( set .@i,0; .@i < getarraysize($MVP_ID); set .@i, .@i+1 ) {
+		set .@time, $MVP_Time[.@i]*60;
+		// Conversion to seconds so we can use gettimetick
+		if( ($MVP_TimeStamp[.@i] + .@time) <= gettimetick(2) && $MVP_Status[.@i] == 1 ) {
+			monster $MVP_Maps$[.@i],0,0,"--ja--",$MVP_ID[.@i],1;
+			// Defines last respawn
+			set $MVP_TimeStamp[.@i], gettimetick(2);
+			set $MVP_Status[.@i], 2;			
+		}
+	}
+	setnpctimer 0;
+	end;
+	
+	
+OnNPCKillEvent:
+	if( getmonsterinfo(killedrid, MOB_MVPEXP) > 0 )
+		// process only MVP Monsters
+		for( set .@i,0; .@i < getarraysize($MVP_ID); set .@i, .@i+1 ) {
+			if( (killedrid == $MVP_ID[.@i]) && (strcharinfo(3) == $MVP_Maps$[.@i])) {
+				set $MVP_Status[.@i],1;
+				set $MVP_TimeStamp[.@i], gettimetick(2);  
+			}
+		}
+	end;
+}

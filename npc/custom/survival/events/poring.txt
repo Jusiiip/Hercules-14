@@ -1,0 +1,160 @@
+	//= Poring Catcher - Auto Event Script
+//===== By: =================================================================================
+//= Washi - www.EarthBound-RO.com
+//===== Compatible With: ====================================================================
+//= Any eAthena Version
+//===== Description: ========================================================================
+//= Single NPC that starts automatically starts every hour.
+//===== Additional Comments: ================================================================
+//= This script is a combenation of the Dice Event by [Mahina]
+//= and the origonal Poring Catcher Event by [Wild Karrd]
+//===========================================================================================
+//= OnMinute - Change this to the minute you would like this script to load. [ LINE 22 ]
+//= getitem - Change this to the Item ID of your prize. [ LINE 118 ]
+//===========================================================================================
+-	script	PoringCatcher	FAKENPC,{
+OnInit:
+    hideonnpc "Poring Catcher#evnt2";
+    end;
+	
+OnStartPoring:	
+OnEventStart:
+	killmonsterall "poring_w01";
+	donpcevent "eventmanager::OnStartEvent";
+	announce "[ Event Manager ]: The Poring Catcher Event will begin in 1 minute. Use @joinevent to join.",bc_all|bc_blue;
+	sleep 60000;
+	
+	donpcevent "eventmanager::OnCloseJoinEvent";
+	announce "[ Event Manager ]: The Poring Catcher has begun! Registration is now closed.",bc_all|bc_blue;
+	donpcevent "Poring Catcher#evnt2::OnEnable";
+    stopnpctimer;
+	end;
+}
+poring_w01,100,127,4	script	Poring Catcher#evnt2	4_M_PIERROT,{
+	mes "[Poring Catcher]";
+    if(PORING_EVENT == 1) goto L_PORING;
+    mes "Please tell me your name";
+    next;
+    input .@name$;
+    if(.@name$ != strcharinfo(0)) {
+        mes "[Poring Catcher]";
+        mes "Are you sure thats your character name?";
+        close;
+    }
+    mes "[Poring Catcher]";
+    mes "Congrats. You've won.";
+    close2;
+    mapannounce "poring_w01","[ Poring Catcher ]: All laugh at, "+.@name$+". - This player tried to cheat the system. Muhahahahaha!",bc_map;
+    warp "veil",119,104;
+    end;
+	
+L_PORING:
+    mes "Please tell me your name";
+    next;
+    input .@name$;
+    if(.@name$ != strcharinfo(0)) {
+        mes "[Poring Catcher]";
+        mes "Are you sure thats your character name?";
+        close;
+    }
+    mes "[ Poring Catcher ]";
+    mes "Congrats. You've won.";
+    close2;
+	donpcevent "eventmanager::OnEndEvent";
+    mapannounce "poring_w01","[ Poring Catcher ]: We have a winner, "+.@name$+". - Event Award Won!",bc_map;
+	getitem 12281,2;
+	set PORING_EVENT,0;
+    warp "veil",119,104;
+    hideonnpc "Poring Catcher#evnt2";
+    end;
+    
+OnEnable:
+    mapannounce "poring_w01","[ Poring Catcher ]: I will be summoning 100 different Porings.",0;
+    sleep2 5000;
+    mapannounce "poring_w01","[ Poring Catcher ]: Only one of these Porings is the correct Poring.",0;
+    sleep2 5000;
+    mapannounce "poring_w01","[ Poring Catcher ]: The correct Poring is called [ Poring ], all the other Porings have different names.",0;
+    sleep2 5000;
+    mapannounce "poring_w01","[ Poring Catcher ]: Take your time because if you kill the wrong Poring, your out of the game.",0;
+    sleep2 5000;
+    mapannounce "poring_w01","[ Poring Catcher ]: The first player to kill the correct Poring wins.",0;
+    sleep2 5000;
+    mapannounce "poring_w01","[ Poring Catcher ]: Event will end in 5 minutes, that's that.. Now let's play...",0;
+    goto L_start;
+    end;
+    
+L_start:
+    mapannounce "poring_w01","[ Poring Catcher ]: 5",0;
+    sleep2 1000;
+    mapannounce "poring_w01","[ Poring Catcher ]: 4",0;
+    sleep2 1000;
+    mapannounce "poring_w01","[ Poring Catcher ]: 3",0;
+    sleep2 1000;
+    mapannounce "poring_w01","[ Poring Catcher ]: 2",0;
+    sleep2 1000;
+    mapannounce "poring_w01","[ Poring Catcher ]: 1",0;
+    sleep2 1000;
+    mapannounce "poring_w01","[ Poring Catcher ]: Lets Do This!",0;
+    areamonster "poring_w01",84,119,121,90,"Pouring",1002,10,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Proing",1002,10,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Poiring",1002,10,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Poing",1002,10,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"I am not Poring",1002,5,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Gniriop",1002,1,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Porring",1113,1,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Porinng",1062,1,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Poriiing",1002,10,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"PoriNgg",1002,10,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Porong",1002,10,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"P0ring",1002,10,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Por1ng",1002,10,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Porng",1002,1,"poringlose::OnMobKilled";
+    areamonster "poring_w01",84,119,121,90,"Poring",1002,1,"poringwin::OnMobKilled";	
+	initnpctimer;
+    end;
+	
+OnTimer240000: // 4 minutes
+	mapannounce "poring_w01","[ Poring Catcher ]: Last 1 minute! find the poring",0;
+	end;
+
+OnTimer300000:
+	donpcevent "eventmanager::OnEndEvent";
+    mapannounce "poring_w01","[ Poring Catcher ]: Time is up! You all are bunch of losers!",bc_map;
+	sleep2 2000;	
+    hideonnpc "Poring Catcher#evnt2";
+    warp "veil",119,104;
+	end;
+}
+
+-	script	poringwin	FAKENPC,{
+	
+OnMobKilled:
+	dispbottom "[ Poring ]: Congratulations. You've got me.";
+	set PORING_EVENT,1;
+	dispbottom "1";
+	atcommand "@doommap";
+	dispbottom "2";
+	//killmonster "poring_w01","All";
+	killmonsterall "poring_w01";
+	dispbottom "3";
+	mapannounce "poring_w01","[ Poring Catcher ]: Come to me and tell me your name.",0;
+	hideoffnpc "Poring Catcher#evnt2";
+	end;
+}
+
+-	script	poringlose	FAKENPC,{
+	OnMobKilled:
+	dispbottom "[ Poring Catcher ]: Wahaha, your a loser! - I wasnt the correct Poring.";
+	warp "veil",119,104;
+	end;
+}
+
+poring_w01	mapflag	nowarp
+poring_w01	mapflag	nowarpto
+poring_w01	mapflag	noteleport
+poring_w01	mapflag	nosave
+poring_w01	mapflag	nomemo
+poring_w01	mapflag	nobranch
+poring_w01	mapflag	noloot
+poring_w01	mapflag	noskill
+poring_w01	mapflag	nopenalty

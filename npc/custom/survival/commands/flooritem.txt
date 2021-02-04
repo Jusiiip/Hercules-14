@@ -1,0 +1,56 @@
+-	script	test1235678	FAKE_NPC,{
+end;
+OnInit:
+	bindatcmd "flooritem", strnpcinfo(0)+"::OnFI", 60,90;
+	end;
+OnFI:
+	.@hditemid = atoi(.@atcmd_parameters$[0]);
+	.@damount = atoi(.@atcmd_parameters$[1]);
+/*
+	setarray .@itemid[1],969,14003;	
+	set .proceed_flooritem,0;
+	set .@fisize,getarraysize(.@itemid);
+
+	for(set .@i,1; .@i<=getarraysize(.@fisize); set .@i,.@i+1) {
+		if (.@itemid[.@i] == .@hditemid) { 
+		set .proceed_flooritem,1;	
+		}
+	}
+*/
+
+if ( !.@damount ) {
+	message strcharinfo(0), "@flooritem <Itemid or itemname> <amount>";
+	end;
+	}
+if ( .@damount < 0 ) {
+	message strcharinfo(0), "@flooritem -> Invalid amount";
+	end;
+	}
+if ( getitemname(.@hditemid) == "null" && !searchitem(.@temp[0],.@atcmd_parameters$[0]) ) {
+	message strcharinfo(0), "@flooritem -> Invalid Item ID";
+	end;
+	}
+/* 
+if (.proceed_flooritem == 0) {
+	message strcharinfo(0), "@flooritem -> Item not allowed for shower";
+	end;
+}
+*/
+if(.@temp[0])		.@dropitemid = .@temp[0];
+	else
+.@dropitemid = .@hditemid;	.@r = (sqrt(.@damount) > 1 ? 40 :sqrt(.@damount));
+
+	getmapxy(.@m$,.@px,.@py,0);
+	.@min_x =((.@px-.@r) < 1?1:(.@px-.@r));
+	.@max_x =((.@px+.@r) > 512 ? 512:(.@px+.@r));
+	.@min_y =((.@py-.@r) < 1?1:(.@py-.@r));
+	.@max_y =((.@py+.@r) > 512 ? 512:(.@py+.@r));
+	freeloop(1);
+	for(.@j=0;.@j< .@damount;.@j++) {
+	while (checkcell(.@m$[.@i],.@px=rand(.@min_x, .@max_x),.@py=rand(.@min_y , .@max_y), cell_chknopass));
+	makeitem .@dropitemid,1,.@m$,.@px,.@py;
+	}
+	freeloop(0);
+	end;
+
+}

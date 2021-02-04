@@ -1,0 +1,86 @@
+-	script	eventmanager	-1,{
+OnInit:
+	bindatcmd "joinevent",strnpcinfo(3)+"::OnAtcommand";
+	$@ongoingevent = 0; //check if there is on-going event.	
+	$@canjoinevent = 0; //check if still can join the current on-going event.
+	end;
+
+OnAtcommand:		
+	if($@ongoingevent == 0 && $@canjoinevent == 0) {
+		dispbottom "[ Event Manager ]: There is no current event on-going right now, try again later.";
+	} else if($@ongoingevent == 1 && $@canjoinevent == 0) { 
+		dispbottom "[ Event Manager ]: There is a current event on-going, you cannot enter now. Please try again.";
+	}
+	else {
+		if(Hp == 0){
+			dispbottom "[ Event Manager ]: You cannot use @joinevent while you are dead.";
+		} else if($@event == 1) {
+			warp "veil",158,156;
+		} else if($@event == 2) {
+			warp "veil",158,156;
+		} else if($@event == 3) {
+			warp "veil",158,156;
+		} else if($@event == 4) {
+			doevent "poring_rc_main::OnEnter";
+		} else if($@event == 5) {
+			doevent "Last Man Standing::OnEnter";
+		} else if($@event == 6) {
+			doevent "Run Or Die::OnEnter";
+		} 
+		
+		else if($@event == 7) {
+			warp "poring_w01",106,129;
+		}
+	}
+	end;
+/*
+OnMinute00:
+OnMinute10:
+OnMinute20:
+OnMinute30:
+OnMinute40:
+OnMinute50:
+OnMinute09:
+*/
+OnMinute00:
+OnMinute20:
+OnMinute40:
+	if($@ongoingevent==1) 
+		end;	
+	
+	//set $@event, 7;
+	set $@event, rand(1,7);
+	if($@event == 1) {	
+		donpcevent "Keyboard Warrior Fairy::OnStartKBE";
+	} else if($@event == 2) {
+		donpcevent "Clucker::OnStartCluck";
+	} else if($@event == 3) {
+		donpcevent "Disguise Event::OnStartDsgse";
+	} else if($@event == 4) {
+		donpcevent "poring_rc_main::OnStartRace";
+	} else if($@event == 5) {
+		donpcevent "Last Man Standing::OnStartLMS";
+	} else if($@event == 6) {
+		donpcevent "runordie::OnStartRoD";
+	} 
+	else if($@event == 7) {
+		donpcevent "PoringCatcher::OnStartPoring";
+	}
+	end;
+	
+OnStartEvent:
+	set $@ongoingevent,1;
+	set $@canjoinevent,1;
+	end;	
+
+OnEndEvent:
+	//reset all event variables.
+	set $@ongoingevent,0;
+	set $@canjoinevent,0;
+	end;
+	
+OnCloseJoinEvent:
+	set $@canjoinevent,0;
+	end;
+}
+

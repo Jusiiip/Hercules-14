@@ -1,0 +1,60 @@
+
+veil,42,199,4	script	Box Exchanger	2_VENDING_MACHINE1,{
+	
+	mes " [ ^8B008BBox Exchanger^000000 ]";
+	mes "What would you like to convert?";
+	switch(select("Yggdrasil Berries","Nothing currently.")) {
+
+	case 1:
+		.itemtobox = 607;
+		.quantityperbox = 10;
+		.itemtoexchange = 14232;
+		if ( countitem(.itemtobox) < .quantityperbox ) {
+			next;
+			mes " [ ^8B008BBox Exchanger^000000 ]";
+			mes "You need at least "+.quantityperbox+" "+getitemname(.itemtobox)+" to create 1 "+getitemname(.itemtoexchange)+".";
+			close;
+			break;
+		}
+		next;
+		
+		.Amount = countitem(.itemtobox);
+		.Amount2 = countitem(.itemtobox)/.quantityperbox;
+			
+		mes " [ ^8B008BBox Exchanger^000000 ]";			
+		mes "You can convert your "+.Amount+" pcs "+getitemname(.itemtobox)+" ";
+		mes " ";
+		mes "for a total of "+.Amount2+" pc(s) Yggdrassil Berry Box";
+		mes " ";
+		mes "^ff0000Proceed?^000000";
+		next;
+		
+		switch(select("Yes Please.","No thanks.")) {
+			case 1:			
+				.todeleteitem = 0;
+				.togetitemcount = 0;
+				.countininventory = countitem(.itemtoexchange);
+				for (  .i = .quantityperbox; .i <= countitem((.itemtobox)); ) {
+					.togetitemcount = .togetitemcount + 1;
+					delitem .itemtobox,.quantityperbox;						
+				}
+				
+				delitem .itemtoexchange,.countininventory;
+				getitem .itemtoexchange,.togetitemcount+.countininventory;
+				
+				mes " [ ^8B008BBox Exchanger^000000 ]";
+				.Offset = .Amount-countitem(.itemtobox);
+				mes "Exchange of Yggdrasil Berry ("+.Offset+") for Yggdrasil Box x "+.Amount2+".";
+				close;
+			case 2:
+				mes " [ ^8B008BBox Exchanger^000000 ]";
+				mes "Come back if you change your mind.";
+				close;
+		}
+
+
+	case 2:
+		mes "Come back if you change your mind.";
+		close;
+	}
+}

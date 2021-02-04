@@ -1,0 +1,53 @@
+firstcity,214,203,5	script	test	4_M_FARIYKING,{
+		
+	OnStartTest:		
+		announce "starting event.",0;
+		donpcevent "eventmanager::OnStartEvent";
+		mes "OnStartEvent";
+		if($@ongoingevent == 0 && $@canjoinevent == 0) {
+			mes "close ";
+			mes "On-going event varable set: " + $@ongoingevent;
+			mes "canjoinevent varable set: " + $@canjoinevent;
+		} else {
+			mes "open ";
+			mes "On-going event varable set: " + $@ongoingevent;
+			mes "canjoinevent varable set: " + $@canjoinevent;
+		}
+		next;	
+		mes "OnCloseJoinEvent";		
+		donpcevent "eventmanager::OnCloseJoinEvent";
+		if($@ongoingevent == 0 && $@canjoinevent == 0) {
+			mes "close ";
+			mes "On-going event varable set: " + $@ongoingevent;
+			mes "canjoinevent varable set: " + $@canjoinevent;
+		} else {
+			mes "open ";
+			mes "On-going event varable set: " + $@ongoingevent;
+			mes "canjoinevent varable set: " + $@canjoinevent;
+			mes " ";
+			if($@ongoingevent == 1 && $@canjoinevent == 0) {
+				mes "1st instance: 1 = 0 ";
+			} else {
+				mes "1st instance didnt work";
+			}
+			if($@ongoingevent == 0 && $@canjoinevent == 1) {
+				mes "2nd instance: 0 = 1 ";
+			} else {
+				mes "2nd instance didnt work";
+			}
+		}
+		next;
+		mes "OnEndEvent";		
+		donpcevent "eventmanager::OnEndEvent";
+		if($@ongoingevent == 0 && $@canjoinevent == 0) {
+			mes "close ";
+			mes "On-going event varable set: " + $@ongoingevent;
+			mes "canjoinevent varable set: " + $@canjoinevent;
+		} else {
+			mes "open ";
+			mes "On-going event varable set: " + $@ongoingevent;
+			mes "canjoinevent varable set: " + $@canjoinevent;
+		}
+		close;
+	
+}

@@ -1,0 +1,121 @@
+prontera.gat,149,193,4	script	Pvp Warper	4_M_SAKRAY,{
+	if ("grandarena"=="") donpcevent "Pvp Warper::OnClock0000";
+ 
+	mes "[PvP Warper]";
+	mes "Kill player(s) to gain Pvp Points!"; 
+	mes " ";
+	mes "1 point for PvP Nightmare";
+	mes "  - (^00FF00Enabled^000000 MVP Cards)";
+	mes "3 points for PvP Yoyo ";
+	mes "  -(^FF0000Disabled^000000 MVP Cards)";
+	next;
+	mes "[PvP Warper]";
+	mes "We strictly enforce anti-bullying.";
+	mes " ";
+	mes "You will not gain points for killing the same player 5 times.";
+	mes "Which arena do you want to go to?";	
+	switch(select("PvP Nightmare ["+getmapusers("grandarena")+"/100]:PvP Yoyo ["+getmapusers("pvp_y_1-2")+"/100]")) {
+	case 1:	// GrandArena
+		if (getmapusers("grandarena") > 99) callsub S_full;
+		callsub S_payment;
+		warp "grandarena",0,0;
+		end; 
+	case 2:	// PVP NO MVP
+		if (getmapusers("pvp_y_1-2") > 99) callsub S_full;
+		for( set .@i,0; .@i<getarraysize(.NoMvpCard_ids); set .@i,.@i+1 ) {
+		if (countitem(.NoMvpCard_ids[.@i]) || checkequipedcard(.NoMvpCard_ids[.@i])) {
+				mes "You can not use MVP Card in this pvp.";
+				close;
+			}
+		}
+		callsub S_payment;
+		warp "pvp_y_1-2",0,0;
+		end; 
+	}
+ 
+S_full:
+	mes " ";
+	mes "I'm sorry, this arena is full.  Please try again later...";
+	close;
+S_payment:
+	if (Zeny < (5000)) {
+		mes "You don't have enough zeny.";
+		mes "It costs "+(5000)+" zeny for you to enter.";
+		close;
+	}
+	set Zeny, Zeny - (5000);
+	return;
+ 
+OnInit:
+	OnTimer5000:
+	delwaitingroom;
+	switch(rand(1,2)) {
+		case 1:
+			waitingroom getmapusers("grandarena")+" player"+( getmapusers("grandarena") > 1 ? "s":"") +" are in the PvP Nightmare", 0;
+			goto Timer;
+			end;
+			break;
+
+		case 2:
+			waitingroom getmapusers("pvp_y_1-2")+" player"+( getmapusers("pvp_y_1-2") > 1 ? "s":"") +" are in the PvP Yoyo", 0;
+			goto Timer;
+			end;
+	break;
+
+	Timer:
+		initnpctimer;
+}
+ 
+	// items not allowed in PVP MVP
+	setarray .NoMvpCard_ids[0], 4054, 4241, 4174, 4354, 4047, 4198, 4236, 4359, 4425, 4372, 4147, 4145, 4168, 4386, 4142, 4134, 4137, 4123, 4330, 4441, 4324, 4408, 4128, 4365, 4430, 4263, 4403, 4318, 4419, 4376, 4357, 4276, 4146, 4132, 4131, 4143, 4135, 4144, 4148, 4121, 4342, 4367, 4302, 4399, 4305, 4407, 4374, 4361, 4352;
+	
+	end;
+}
+moscovia.gat,227,203,4	duplicate(Pvp Warper)	PvP Warper#1	4_M_SAKRAY
+alberta.gat,34,240,4	duplicate(Pvp Warper)	PvP Warper#3	4_M_SAKRAY // Kliwa
+aldebaran.gat,148,117,4	duplicate(Pvp Warper)	PvP Warper#4	4_M_SAKRAY // Kliwa
+amatsu.gat,102,152,4	duplicate(Pvp Warper)	PvP Warper#5	4_M_SAKRAY // Kliwa
+ayothaya.gat,153,123,4	duplicate(Pvp Warper)	PvP Warper#6	4_M_SAKRAY // Kliwa
+comodo.gat,198,148,6	duplicate(Pvp Warper)	PvP Warper#7	4_M_SAKRAY // Kliwa
+einbech.gat,198,83,4	duplicate(Pvp Warper)	PvP Warper#8	4_M_SAKRAY // Taas Kaliwa
+einbroch.gat,174,172,4	duplicate(Pvp Warper)	PvP Warper#9	4_M_SAKRAY // Taas Kaliwa
+geffen.gat,124,72,4	duplicate(Pvp Warper)	PvP Warper#10	4_M_SAKRAY
+gonryun.gat,154,127,6	duplicate(Pvp Warper)	PvP Warper#11	4_M_SAKRAY
+hugel.gat,93,154,4	duplicate(Pvp Warper)	PvP Warper#12	4_M_SAKRAY
+izlude.gat,132,114,4	duplicate(Pvp Warper)	PvP Warper#13	4_M_SAKRAY
+lighthalzen.gat,166,101,4	duplicate(Pvp Warper)	PvP Warper#14	4_M_SAKRAY
+louyang.gat,208,109,6	duplicate(Pvp Warper)	PvP Warper#15	4_M_SAKRAY
+xmas.gat,140,138,4	duplicate(Pvp Warper)	PvP Warper#16	4_M_SAKRAY
+morocc.gat,162,97,4	duplicate(Pvp Warper)	PvP Warper#17	4_M_SAKRAY
+payon.gat,168,235,4	duplicate(Pvp Warper)	PvP Warper#18	4_M_SAKRAY
+rachel.gat,129,119,4	duplicate(Pvp Warper)	PvP Warper#19 	4_M_SAKRAY
+veins.gat,220,136,4	duplicate(Pvp Warper)	PvP Warper#20	4_M_SAKRAY
+yuno.gat,152,184,4	duplicate(Pvp Warper)	PvP Warper#21	4_M_SAKRAY
+yuno.gat,151,49,6	duplicate(Pvp Warper)	PvP Warper#21-2	4_M_SAKRAY
+umbala.gat,78,159,6	duplicate(Pvp Warper)	PvP Warper#22	4_M_SAKRAY
+einbroch.gat,58,189,4	duplicate(Pvp Warper)	PvP Warper#26	4_M_SAKRAY
+veil.gat,124,112,6	duplicate(Pvp Warper)	Pvp Warper#29	4_M_SAKRAY
+jawaii.gat,185,247,4	duplicate(Pvp Warper)	Pvp Warper#230	4_M_SAKRAY
+
+grandarena	mapflag	nocommand	99
+grandarena	mapflag	nosave	SavePoint
+grandarena	mapflag	noteleport
+grandarena	mapflag	nowarp
+grandarena	mapflag	nowarpto
+grandarena	mapflag	nomemo
+grandarena	mapflag	notrade
+grandarena	mapflag	noreturn
+grandarena	mapflag	nobranch
+grandarena	mapflag	pvp
+
+
+pvp_y_1-2	mapflag	nocommand	99
+pvp_y_1-2	mapflag	nosave	SavePoint
+pvp_y_1-2	mapflag	noteleport
+pvp_y_1-2	mapflag	nowarp
+pvp_y_1-2	mapflag	nowarpto
+pvp_y_1-2	mapflag	nomemo
+pvp_y_1-2	mapflag	notrade
+pvp_y_1-2	mapflag	noreturn
+pvp_y_1-2	mapflag	nobranch
+pvp_y_1-2	mapflag	pvp

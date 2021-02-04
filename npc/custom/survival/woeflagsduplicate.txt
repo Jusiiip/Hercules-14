@@ -1,0 +1,61 @@
+
+//prontera
+//prontera,165,194,5	duplicate(InsideFlagsPR5)	Gondul#13	GUILD_FLAG
+//prontera,167,203,6	duplicate(InsideFlagsPR4)	Skoegul#15	GUILD_FLAG
+//prontera,143,203,2	duplicate(InsideFlagsPR3)	Fadhgridh#15	GUILD_FLAG
+//prontera,146,194,3	duplicate(InsideFlagsPR2)	Swanhild#17	GUILD_FLAG
+//prontera,155,190,4	duplicate(InsideFlagsPR1)	Kriemhild#15	GUILD_FLAG
+
+veil,109,164,4	duplicate(InsideFlagsPR1)	Kriemhild#viel	GUILD_FLAG
+veil,105,160,4	duplicate(InsideFlagsPA5)	Bamboo Grove Hill#viel	GUILD_FLAG
+veil,130,164,4	duplicate(InsideFlagsA5)	Rothenburg#viel	GUILD_FLAG
+veil,134,160,4	duplicate(InsideFlagsG1)	Repherion#veil	GUILD_FLAG
+
+//payon
+//payon,123,322,4	duplicate(InsideFlagsPA5)	Bamboo Grove Hill#11	GUILD_FLAG
+//payon,166,161,3	duplicate(InsideFlagsPA5)	Bamboo Grove Hill#12	GUILD_FLAG
+//payon,118,322,4	duplicate(InsideFlagsPA4)	Sacred Altar#11	GUILD_FLAG
+//payon,166,165,3	duplicate(InsideFlagsPA4)	Sacred Altar#12	GUILD_FLAG
+//payon,113,322,4	duplicate(InsideFlagsPA3)	Holy Shadow#11	GUILD_FLAG
+//payon,166,169,3	duplicate(InsideFlagsPA3)	Holy Shadow#12	GUILD_FLAG
+//payon,97,322,4	duplicate(InsideFlagsPA2)	Scarlet Palace#11	GUILD_FLAG
+//payon,166,173,3	duplicate(InsideFlagsPA2)	Scarlet Palace#12	GUILD_FLAG
+//payon,90,322,4	duplicate(InsideFlagsPA1)	Bright Arbor#11	GUILD_FLAG
+//payon,166,177,3	duplicate(InsideFlagsPA1)	Bright Arbor#12	GUILD_FLAG
+
+// geffen
+//geffen,131,123,6	duplicate(InsideFlagsG5)	Mersetzdeitz#11	GUILD_FLAG
+//geffen,127,130,7	duplicate(InsideFlagsG4)	Bergel#11	GUILD_FLAG
+//geffen,120,132,0	duplicate(InsideFlagsG3)	Yesnelph#15	GUILD_FLAG
+//geffen,112,129,1	duplicate(InsideFlagsG2)	Eeyorbriggar#12	GUILD_FLAG
+//geffen,109,123,2	duplicate(InsideFlagsG1)	Repherion#11	GUILD_FLAG
+
+
+//Alde
+//aldebaran,128,97,4	duplicate(InsideFlagsA5)	Rothenburg#19	GUILD_FLAG
+//aldebaran,131,97,4	duplicate(InsideFlagsA4)	Wuerzburg#20	GUILD_FLAG
+//aldebaran,134,97,4	duplicate(InsideFlagsA3)	Nuernberg#20	GUILD_FLAG
+//aldebaran,149,97,4	duplicate(InsideFlagsA2)	Hohenschwangau#17	GUILD_FLAG
+//aldebaran,152,97,4	duplicate(InsideFlagsA1)	Neuschwanstein#23	GUILD_FLAG
+
+//
+
+/*
+
+veil,132,124,4	script	Emperors of the Month	GUILD_FLAG,{
+	mes "^FF0000[ Emperors of the Month ]^000000";
+	mes "Our emperors for the month of May.";
+	mes " ";
+	mes "[ SurvivalRO GM Team ] led by ";
+	mes "[* Administrator *]";
+	mes " ";
+	close;
+}
+
+veil,133,122,4	script	* Administrator *	4_M_OPERATION,{
+	mes "^FF0000[ Administrator ]^000000";
+	mes " ";
+	close;
+}
+
+*/
